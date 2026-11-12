@@ -56,11 +56,19 @@ The controller works as the keyboard the game was written for.
 
 The game controls can still be changed in its own options menu. The first 200 controller button presses are written to `log.txt` (`[dRally.INPUT]`), which helps to check the mapping.
 
+### Typing names
+
+On a screen where the game asks for a name (driver name, save game name, hall of fame) the console's on-screen keyboard opens by itself. What you type is entered into the game's own screen; confirm it with **A** as usual. If you cancel the keyboard, **click the left stick** to open it again. The game accepts capitals, digits, space and `- = , . /` and limits the length by itself.
+
+### Sound
+
+Sound goes through the console's audio renderer (`audren`), at the sample rate the game asks for. The old `audout` service that SDL uses produced audible noise on loud low tones in a similar project, so it is only a fallback if `audren` cannot start (the log says which one is used: `[dRally.SOUND]`).
+
 ## Known limitations
 
 - Network play (IPX) is not part of the Switch build.
-- Typing a name (for example for the hall of fame) needs a USB keyboard for now; the console keyboard is not hooked up yet.
-- Not tested on hardware yet.
+- The game's own text entry only knows capitals, digits and a few signs, so other characters from the on-screen keyboard are dropped.
+- Not tested on hardware yet: sound, the on-screen keyboard and the controller mapping have only been tested as far as is possible on a PC (see `tests/`).
 
 ## Building
 
@@ -75,16 +83,35 @@ make -f Makefile.switch        # builds dRally.nro
 
 `tests/run.sh` builds and runs the host test of the controller mapping (a C compiler is enough).
 
+## Repository layout
+
+The sources used to sit in one folder; they are now sorted (the Linux and Switch builds both use `vpath` over `src/`):
+
+| Folder | Contents |
+| --- | --- |
+| `include/` | all headers |
+| `src/core/` | start-up, data files (`.BPA`), configuration, fonts, palettes, graphics helpers |
+| `src/game/` | the game logic, functions named after their address in the original program |
+| `src/race/`, `src/menu/`, `src/shop/`, `src/underground/` | the race, the menus, the shop and the underground (garage) |
+| `src/sound/` | the music and effect player (S3M and XM trackers) and the audio API |
+| `src/network/` | IPX network play |
+| `src/dfr/` | functions that are still assembly in the original (stubs) |
+| `src/platform/` | the SDL layer: window, keyboard, events |
+| `src/platform/dos/` | what DOS and the Watcom runtime gave the game: interrupts, memory, FPU, random numbers |
+| `src/platform/switch/` | the Nintendo Switch code: controller, audio (`audren`), on-screen keyboard |
+| `tools/` | helper scripts; `ipxnet/` is the IPX server; `tests/` are host tests of the Switch code |
+
 ## What was changed for the Switch
 
-- `Makefile.switch`, `objs.mk` (the object lists, now shared with `Makefile`), the icon in `assets/switch/`.
-- `switch_input.c`: the controller to keyboard mapping.
-- `events.c`: controller events (Switch only).
-- `drally_linux_c.c`: the picture is converted once per frame into one texture kept for the whole run, a fullscreen window, and a software renderer fallback.
-- `drally.c`: start in the folder of the NRO and write `log.txt`.
-- `system_linux_c.c`: the joystick subsystem.
+- `Makefile.switch`, `objs.mk` (the object lists, shared with `Makefile`), the icon in `assets/switch/`.
+- `src/platform/switch/switch_input.c`: the controller to keyboard mapping.
+- `src/platform/switch/switch_audio.c`: audio through `audren` (with SDL audio as a fallback in `src/sound/sound_api.c`).
+- `src/platform/switch/switch_text.c`: the on-screen keyboard; the entry screen (`src/game/___17510h.c`) is wrapped to start and stop it.
+- `src/platform/events.c`: controller events and the keyboard pump (Switch only).
+- `src/platform/drally_linux_c.c`: the picture is converted once per frame into one texture kept for the whole run, a fullscreen window, and a software renderer fallback.
+- `src/core/drally.c`: start in the folder of the NRO and write `log.txt`.
 
-All Switch code is under `DR_SWITCH`; the Linux build is unchanged.
+All Switch code is under `DR_SWITCH`; the Linux build behaves as before.
 
 ## Reporting problems
 

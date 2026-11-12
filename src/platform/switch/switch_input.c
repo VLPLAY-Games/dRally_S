@@ -1,4 +1,5 @@
 #include "switch_input.h"
+#include "switch_text.h"
 
 /* The controller drives the game through the keyboard it was written for. Death Rally steers
    with the arrows and uses a few keys in a race (defaults of the original): A accelerate, Z brake,
@@ -64,6 +65,9 @@ void SwitchInput_button(int button, int down){
 
         SW.button[button] = !!down;
         update_keys();
+
+        /* a click of the left stick opens the on-screen keyboard again on a name entry screen */
+        if((button == SW_LSTICK) && down) SwitchText_request();
     }
 }
 

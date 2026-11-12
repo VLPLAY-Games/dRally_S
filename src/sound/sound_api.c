@@ -118,6 +118,10 @@ void ___685a4h_createPlanes_cdecl(void);
 void ___6ef2ch_init(void);
 void ___6ef2ch(void);
 
+#if defined(DR_SWITCH)
+#include "switch_audio.h"
+#endif
+
 SDL_AudioDeviceID audio_dev = 0;
 
 
@@ -137,6 +141,17 @@ void dRally_Sound_init(__BYTE__ sound){
 			a.samples = SOUND_SAMPLES;
 			a.callback = (SDL_AudioCallback)&audio_s16_stereo_cb;
 			a.userdata = NULL;
+
+#if defined(DR_SWITCH)
+			/* the audio renderer first; SDL's audio (the old audout service) only as a fallback */
+			if(SwitchAudio_open(a.freq, a.samples, a.callback, a.userdata) == 0){
+
+				audio_dev = 0;
+				printf("[dRally.SOUND] Audio opened through audren: %d hz\n", a.freq);
+				return;
+			}
+			printf("[dRally.SOUND] audren is not available, using SDL audio\n");
+#endif
 
 			if(SDL_InitSubSystem(SDL_INIT_AUDIO)){
 				
@@ -158,8 +173,23 @@ void dRally_Sound_init(__BYTE__ sound){
 	}
 }
 
+void dRally_Audio_pause(int paused){
+
+#if defined(DR_SWITCH)
+	if(SwitchAudio_isOpen()){
+
+		SwitchAudio_pause(paused);
+		return;
+	}
+#endif
+	if(audio_dev) SDL_PauseAudioDevice(audio_dev, paused);
+}
+
 void dRally_Sound_quit(void){
 
+#if defined(DR_SWITCH)
+	SwitchAudio_close();
+#endif
 	if(audio_dev){
 
 		printf("[dRally.SOUND] Closing audio device.\n");

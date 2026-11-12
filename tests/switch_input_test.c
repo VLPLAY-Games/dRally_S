@@ -2,11 +2,13 @@
 #include <stdio.h>
 #include <string.h>
 #include "SDL.h"
-#include "../switch_input.h"
+#include "switch_input.h"
 
 static int makes[SDL_NUM_SCANCODES], breaks[SDL_NUM_SCANCODES];
 static int failures = 0;
 
+static int keyboard_requests = 0;
+void SwitchText_request(void){ keyboard_requests++; }
 void dRally_Keyboard_make(SDL_Scancode sc){ makes[sc]++; }
 void dRally_Keyboard_break(SDL_Scancode sc){ breaks[sc]++; }
 
@@ -51,6 +53,10 @@ int main(void){
     CHECK(makes[SDL_SCANCODE_ESCAPE] == 1);
     SwitchInput_button(B, 0); CHECK(breaks[SDL_SCANCODE_ESCAPE] == 0);
     SwitchInput_button(PLUS, 0); CHECK(breaks[SDL_SCANCODE_ESCAPE] == 1);
+
+    /* a click of the left stick asks for the on-screen keyboard (only on press) */
+    SwitchInput_button(LSTICK, 1); SwitchInput_button(LSTICK, 0);
+    CHECK(keyboard_requests == 1);
 
     /* numbers outside the table are ignored */
     SwitchInput_button(99, 1); SwitchInput_button(-1, 1);

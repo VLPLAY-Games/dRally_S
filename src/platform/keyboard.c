@@ -171,6 +171,11 @@ void dRally_Keyboard_break(SDL_Scancode code){
     LAST_KEY = 0;
 }
 
+int dRally_Keyboard_lastKey(void){
+
+    return LAST_KEY;
+}
+
 __BYTE__ dRally_Keyboard_popLastChar(void){
 
     __BYTE__    rslt;

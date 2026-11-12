@@ -23,7 +23,7 @@ ARCH     := -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 # The code was recovered from a 32-bit DOS program: keep the compiler from assuming
 # strict aliasing or non-wrapping signed arithmetic.
 CFLAGS   := -O2 -g -ffunction-sections -fno-strict-aliasing -fwrapv -w $(ARCH) \
-            $(shell $(PKGCONFIG) --cflags sdl2) -I$(DEVKITPRO)/libnx/include
+            $(shell $(PKGCONFIG) --cflags sdl2) -I$(DEVKITPRO)/libnx/include -Iinclude
 # DR_LETTERBOX: keep the 4:3 picture and scale it inside the 16:9 screen.
 # No DR_MULTIPLAYER / IPXNET: the IPX network play is not part of the Switch build.
 DEFINES  := -DDR_LETTERBOX -DDR_SWITCH
@@ -32,12 +32,15 @@ LIBS     := $(shell $(PKGCONFIG) --libs sdl2) -lm
 
 include objs.mk
 
-ALL_OBJS := switch_input.o $(UNI_OBJS) $(LINUX_OBJS) $(RACE_OBJS) $(MENU_OBJS) $(SHOP_OBJS) $(UNDERGROUND_OBJS) $(OBJS) $(MP_CMN_OBJS) $(MP_OBJS) $(DFR_OBJS)
+# Sources live in src/ (see the layout in README.md).
+vpath %.c $(shell find src -type d)
+
+ALL_OBJS := switch_input.o switch_audio.o switch_text.o $(UNI_OBJS) $(LINUX_OBJS) $(RACE_OBJS) $(MENU_OBJS) $(SHOP_OBJS) $(UNDERGROUND_OBJS) $(OBJS) $(MP_CMN_OBJS) $(MP_OBJS) $(DFR_OBJS)
 OBJ_PATHS := $(addprefix $(BUILD)/,$(ALL_OBJS))
 
 all: $(APP_NAME).nro
 
-$(BUILD)/%.o: %.c drally.h drally_keyboard.h switch_input.h Makefile.switch objs.mk
+$(BUILD)/%.o: %.c include/drally.h include/drally_keyboard.h include/switch_input.h include/switch_audio.h include/switch_text.h Makefile.switch objs.mk
 	@mkdir -p $(BUILD)
 	$(CC) -c -o $@ $< $(CFLAGS) $(DEFINES)
 

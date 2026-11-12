@@ -126,18 +126,18 @@ void DO_NOTHING(void){
 	// empty callback
 };
 
-extern SDL_AudioDeviceID audio_dev;
+void dRally_Audio_pause(int paused);
 void SET_AUDIO_DATA_CB(void_cb cb){ 
 
 	if(cb == &DO_NOTHING){
 
 		AUDIO_DATA_CB = cb;
-		if(audio_dev) SDL_PauseAudioDevice(audio_dev, 1);
+		dRally_Audio_pause(1);
 	}
 	else {
 
 		AUDIO_DATA_CB = cb;
-		if(audio_dev) SDL_PauseAudioDevice(audio_dev, 0);
+		dRally_Audio_pause(0);
 	}
 
 }

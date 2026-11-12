@@ -36,6 +36,13 @@ void ___23758h(void);
 __BYTE__ ___5994ch(void);
 void ___12e78h_cdecl(__BYTE__ * A1, font_props_t * A2, const char * A3, __DWORD__ dst_off);
 
+#if defined(DR_SWITCH)
+#include "switch_text.h"
+/* The name entry screen: the console keyboard types into it while it runs. The original function
+   keeps its code under another name and is wrapped below. */
+#define ___17510h_cdecl ___17510h_cdecl_entry
+#endif // DR_SWITCH
+
 __DWORD__ ___17510h_cdecl(__POINTER__ A1, __DWORD__ A2, __DWORD__ A3, __POINTER__ A4, __DWORD__ A5, __DWORD__ A6, __DWORD__ A7, __DWORD__ A8, __DWORD__ A9){
 
 	int 	n;
@@ -710,3 +717,18 @@ __DWORD__ ___17510h_cdecl(__POINTER__ A1, __DWORD__ A2, __DWORD__ A3, __POINTER_
 
 	return 1;
 }
+
+#if defined(DR_SWITCH)
+#undef ___17510h_cdecl
+
+__DWORD__ ___17510h_cdecl(__POINTER__ A1, __DWORD__ A2, __DWORD__ A3, __POINTER__ A4, __DWORD__ A5, __DWORD__ A6, __DWORD__ A7, __DWORD__ A8, __DWORD__ A9){
+
+	__DWORD__ result;
+
+	SwitchText_begin((int)A5);
+	result = ___17510h_cdecl_entry(A1, A2, A3, A4, A5, A6, A7, A8, A9);
+	SwitchText_end();
+
+	return result;
+}
+#endif // DR_SWITCH
