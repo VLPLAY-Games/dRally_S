@@ -3,41 +3,36 @@
 A port of [dRally](https://github.com/BSzili/dRally), an open source engine for **Death Rally (1996)**, to the Nintendo Switch homebrew platform (devkitA64 / libnx / SDL2).
 
 > [!IMPORTANT]
-> This repository contains **no Death Rally game data**. You need your own copy of the game (Remedy's free Windows version, also available as *Death Rally (Classic)* on Steam) and you copy its files to your own console.
+> This repository contains **no Death Rally game data**. You need your own copy of the **1996 game** (version 1.1, the DOS release, for example from the original CD) and you copy its files to your own console. The 2012 remake sold on Steam is a different game and does not work.
 
 > [!NOTE]
-> **Status: first build, not tested on a console yet.** It builds and links, and the controller mapping is covered by a host test, but nobody has run it on hardware. Please report what works and what does not (see [Reporting problems](#reporting-problems)).
-
-## Prompts
-
-Prompts that named a key ("press any key", "press Enter") name the controller button here ("Press A button to continue"); the pause and race-over messages and the first-race help show Switch buttons, and the abort-race question is answered with **Y** (abort) or **A** (continue).
+> **Status: 1.0.0.** Tested on a console in handheld mode (menus, races, steering, vibration, 16:9). Not tested yet: docked mode, touch in the 16:9 mode and other controllers. Please report what works and what does not (see [Reporting problems](#reporting-problems)). The README has the short version of installing and playing; this file has the details.
 
 ## Requirements
 
 - A Nintendo Switch with custom firmware that runs homebrew (for example Atmosphère) and the Homebrew Menu.
-- Death Rally game files (see below).
+- Death Rally game files (see below). No overclocking is needed; lower clocks can be set to save battery (a tool such as Horizon OC or sys-clk; the game never changes clocks itself).
 
 ## Installation
 
 ```text
 sdmc:/switch/dRally/
 ├── dRally.nro
-├── CDROM.INI              contains the text ./CINEM
 ├── ENGINE.BPA
 ├── IBFILES.BPA
 ├── MENU.BPA
 ├── MUSICS.BPA
 ├── TR0.BPA ... TR9.BPA
-└── CINEM/
-    ├── DR.IDF
-    ├── ENDANI.HAF
-    ├── ENDANI0.HAF
-    └── SANIM.HAF
+├── SANIM.HAF              optional: the intro animation
+├── ENDANI.HAF             optional: the ending animations
+└── ENDANI0.HAF
 ```
 
 1. Copy `dRally.nro` to `sdmc:/switch/dRally/`.
-2. Copy the game files from your Death Rally installation into the same folder. The names must be in upper case, and the `.HAF` and `.IDF` files go into `CINEM/`. `CDROM.INI` is a one-line text file holding `./CINEM`.
+2. Copy the game files from your Death Rally 1.1 (1996) into the same folder. The names must be in upper case. On the original CD the `.BPA` files are in `RALINST` and the `.HAF` files in `CINEM`; `DR.IDF` and the rest are not needed. The 2012 remake is a different game and does not work.
 3. Start **dRally** from the Homebrew Menu.
+
+(The original layout, with a `CINEM/` folder and a `CDROM.INI` that holds `./CINEM`, also works.)
 
 The game keeps its settings (`DR.CFG`), the settings of this port (`SWITCH.CFG`, written the first time) and a `log.txt` in the same folder. `log.txt` is the file to attach to a bug report.
 
@@ -65,6 +60,10 @@ The controller works as the keyboard the game was written for. The game steers, 
 | Right stick click | | Switch the view (Tab) |
 
 In a race the game ends the race the moment Escape is pressed and pauses on P, so **+ pauses and - leaves**, and B does nothing there. The game controls can still be changed in its own options menu. The first 200 controller button presses are written to `log.txt` (`[dRally.INPUT]`), which helps to check the mapping.
+
+### Prompts
+
+Prompts that named a key ("press any key", "press Enter") name the controller button here ("Press A button to continue"); the pause and race-over messages and the first-race help show Switch buttons, and the abort-race question is answered with **Y** (abort) or **A** (continue).
 
 ### Steering
 
@@ -121,7 +120,7 @@ Sound goes through the console's audio renderer (`audren`), at the sample rate t
 - Network play (IPX) is not part of the Switch build.
 - The game's own text entry only knows capitals, digits and a few signs, so other characters from the on-screen keyboard are dropped.
 - The menu entries for the PC joystick (Define Gamepad/Joystick, Gamepad/Joystick) and "Multiplayer Race" are switched off on the Switch: the console controller is always active and the network play is not in the build.
-- Not tested on hardware yet: sound, the on-screen keyboard, the controller mapping, vibration, direction steering has only been tested as far as is possible on a PC (see `tests/`). The strength of the vibration is the first thing to check.
+- Not tested yet: docked mode, touch in the 16:9 mode, controllers other than the built-in one.
 
 ## Building
 
