@@ -18,9 +18,6 @@ void SwitchConfig_defaults(void){
     SwitchConfig.stick_mode = 1;
     SwitchConfig.stick_deadzone = 15;
     SwitchConfig.stick_invert_x = 0;
-    SwitchConfig.gyro = 0;
-    SwitchConfig.gyro_range = 25;
-    SwitchConfig.gyro_deadzone = 3;
 }
 
 static int clamp(int v, int lo, int hi){ return (v < lo) ? lo : ((v > hi) ? hi : v); }
@@ -36,9 +33,6 @@ static void set_value(const char * name, int value){
     else if(!strcmp(name, "stick_mode")) SwitchConfig.stick_mode = clamp(value, 0, 1);
     else if(!strcmp(name, "stick_deadzone")) SwitchConfig.stick_deadzone = clamp(value, 0, 50);
     else if(!strcmp(name, "stick_invert_x")) SwitchConfig.stick_invert_x = !!value;
-    else if(!strcmp(name, "gyro")) SwitchConfig.gyro = !!value;
-    else if(!strcmp(name, "gyro_range")) SwitchConfig.gyro_range = clamp(value, 5, 90);
-    else if(!strcmp(name, "gyro_deadzone")) SwitchConfig.gyro_deadzone = clamp(value, 0, 20);
 }
 
 void SwitchConfig_parse(const char * text){
@@ -106,14 +100,8 @@ const char * SwitchConfig_template(void){
         "stick_deadzone = 15\n"
         "\n"
         "# 1: swap left and right of the left stick (use it if the stick steers the wrong way).\n"
-        "stick_invert_x = 0\n"
-        "\n"
-        "# 1: steer by tilting the console like a wheel (handheld mode only). gyro_range is the tilt\n"
-        "# in degrees for full steering, gyro_deadzone the tilt that does nothing. In a race, a click\n"
-        "# of the left stick switches it on or off and sets the straight position.\n"
-        "gyro = 0\n"
-        "gyro_range = 25\n"
-        "gyro_deadzone = 3\n";
+        "stick_invert_x = 0\n";
+
 }
 
 static int get_value(const char * name, int * value){
@@ -127,9 +115,6 @@ static int get_value(const char * name, int * value){
     else if(!strcmp(name, "stick_mode")) *value = SwitchConfig.stick_mode;
     else if(!strcmp(name, "stick_deadzone")) *value = SwitchConfig.stick_deadzone;
     else if(!strcmp(name, "stick_invert_x")) *value = SwitchConfig.stick_invert_x;
-    else if(!strcmp(name, "gyro")) *value = SwitchConfig.gyro;
-    else if(!strcmp(name, "gyro_range")) *value = SwitchConfig.gyro_range;
-    else if(!strcmp(name, "gyro_deadzone")) *value = SwitchConfig.gyro_deadzone;
     else return 0;
     return 1;
 }

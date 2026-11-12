@@ -9,20 +9,20 @@ static int failures = 0;
 int main(void){
 
     SwitchConfig_defaults();
-    CHECK(SwitchConfig.vsync == 1 && SwitchConfig.gyro == 0 && SwitchConfig.stick_deadzone == 15);
+    CHECK(SwitchConfig.vsync == 1 && SwitchConfig.stick_mode == 1 && SwitchConfig.stick_deadzone == 15);
 
     /* the template written to a new file is itself valid and keeps the defaults */
     SwitchConfig_parse(SwitchConfig_template());
     CHECK(SwitchConfig.vsync == 1 && SwitchConfig.rumble == 1 && SwitchConfig.rumble_percent == 100);
-    CHECK(SwitchConfig.analog_steering == 1 && SwitchConfig.gyro == 0 && SwitchConfig.gyro_range == 25);
+    CHECK(SwitchConfig.analog_steering == 1 && SwitchConfig.widescreen == 0 && SwitchConfig.scaling == 0);
 
     /* values, comments, spaces; unknown lines and bad values are ignored; ranges are limited */
-    SwitchConfig_parse("  vsync=0   # off\n gyro = 1\nstick_deadzone = 80\ngyro_range = 1\nrumble_percent = -5\n"
+    SwitchConfig_parse("  vsync=0   # off\n stick_mode = 0\nstick_deadzone = 80\nscaling = 7\nrumble_percent = -5\n"
                        "nonsense line\nrumble = abc\nanalog_steering = 0\n\n\n");
     CHECK(SwitchConfig.vsync == 0);
-    CHECK(SwitchConfig.gyro == 1);
+    CHECK(SwitchConfig.stick_mode == 0);
     CHECK(SwitchConfig.stick_deadzone == 50);
-    CHECK(SwitchConfig.gyro_range == 5);
+    CHECK(SwitchConfig.scaling == 1);               /* 7 limited to 1 */
     CHECK(SwitchConfig.rumble_percent == 0);        /* -5 limited to 0 */
     CHECK(SwitchConfig.rumble == 1);                /* "abc" ignored */
     CHECK(SwitchConfig.analog_steering == 0);
@@ -39,7 +39,7 @@ int main(void){
         f = fopen(path, "rb");
         CHECK(f != NULL);
         if(f){ fread(text, 1, sizeof(text)-1, f); fclose(f); }
-        CHECK(strstr(text, "vsync = 1") != NULL && strstr(text, "gyro_range = 25") != NULL);
+        CHECK(strstr(text, "vsync = 1") != NULL && strstr(text, "stick_invert_x = 0") != NULL);
         remove(path);
     }
 
@@ -52,7 +52,7 @@ int main(void){
         SwitchConfig_defaults();
         SwitchConfig.scaling = 1;
         SwitchConfig.widescreen = 1;
-        SwitchConfig.gyro_range = 40;
+        SwitchConfig.stick_deadzone = 40;
         SwitchConfig_save(path);
 
         f = fopen(path, "rb");
@@ -63,7 +63,7 @@ int main(void){
 
         SwitchConfig_defaults();
         SwitchConfig_load(path);
-        CHECK(SwitchConfig.scaling == 1 && SwitchConfig.widescreen == 1 && SwitchConfig.gyro_range == 40);
+        CHECK(SwitchConfig.scaling == 1 && SwitchConfig.widescreen == 1 && SwitchConfig.stick_deadzone == 40);
         CHECK(SwitchConfig.vsync == 1 && SwitchConfig.stick_invert_x == 0);
         remove(path);
     }

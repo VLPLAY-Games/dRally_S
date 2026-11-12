@@ -859,10 +859,8 @@ void race_main(int MyIndex, int NumCars){
 	SwitchTouch_setMode(SWITCHTOUCH_RACE);
 	SwitchInput_setRace(1);
 	SwitchSteer_reset();
-	SwitchSteer_setGyroEnabled(SwitchConfig.gyro);		/* the position of the console now is straight */
 	race_main_body(MyIndex, NumCars);
 	SwitchInput_setRace(0);
-	SwitchSteer_setGyroEnabled(0);
 	SwitchTouch_setMode(SWITCHTOUCH_SCREENS);
 }
 #endif // DR_SWITCH

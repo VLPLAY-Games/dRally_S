@@ -51,7 +51,7 @@ The controller works as the keyboard the game was written for. The game steers, 
 | --- | --- | --- |
 | D-pad | Move | Steer (on or off); up accelerates, down brakes |
 | Left stick | Move | Points where the car should go (`stick_mode = 1`), or turns it left and right (`stick_mode = 0`) |
-| Left stick click | (on a name screen: the keyboard) | Gyro steering on or off |
+| Left stick click | (on a name screen: the keyboard) | Nothing |
 | ZR | | Accelerate |
 | ZL | | Brake |
 | R | | Machine gun |
@@ -72,7 +72,6 @@ The game itself only knows steer left, steer right (on or off, once per frame). 
 
 - **Direction steering with the left stick** (on by default, `stick_mode = 1`): in a race the stick points where the car should go *on the screen*: stick up and the car turns until it heads up the screen, stick right and it heads right, and so on, by the shortest way round. The further the car is from the wanted heading, the more often it steers (small corrections steer only some frames). The stick does not accelerate or brake: gas and brake stay on **ZR** and **ZL**. In the dead zone it asks for nothing. Set `stick_mode = 0` for the classic behaviour below.
 - **Fine steering with the left stick** (`stick_mode = 0`): how far the stick is pushed decides how often the steering flag is on; half way is every second frame, full is every frame. The D-pad is still on or off. In a race the stick only accelerates or brakes when it is pushed clearly up or down (not when steering diagonally). Set `analog_steering = 0` in `SWITCH.CFG` for the old behaviour.
-- **Steering by tilting the console** (handheld mode, off by default): turn the console like a wheel. Switch it on in `SWITCH.CFG` (`gyro = 1`) or in a race by clicking the **left stick** (a short vibration confirms); the position of the console at that moment is straight. It adds to the stick. `gyro_range` is the tilt for full steering, `gyro_deadzone` the tilt that does nothing.
 
 ### Vibration
 
@@ -94,10 +93,8 @@ The picture waits for the screen (vsync, no tearing) while the game keeps its ow
 | `rumble`, `rumble_percent` | 1, 100 | vibration in races and how strong |
 | `analog_steering` | 1 | fine steering with the left stick |
 | `stick_deadzone` | 15 | percent of the stick's travel that does nothing |
-| `gyro` | 0 | steering by tilting the console |
 | `stick_mode` | 1 | 1: the stick points where the car should go on the screen; 0: it turns the car left and right |
 | `stick_invert_x` | 0 | 1 swaps left and right of the left stick |
-| `gyro_range`, `gyro_deadzone` | 25, 3 | degrees for full steering, degrees that do nothing |
 
 ### Touch screen
 
@@ -124,7 +121,7 @@ Sound goes through the console's audio renderer (`audren`), at the sample rate t
 - Network play (IPX) is not part of the Switch build.
 - The game's own text entry only knows capitals, digits and a few signs, so other characters from the on-screen keyboard are dropped.
 - The menu entries for the PC joystick (Define Gamepad/Joystick, Gamepad/Joystick) and "Multiplayer Race" are switched off on the Switch: the console controller is always active and the network play is not in the build.
-- Not tested on hardware yet: sound, the on-screen keyboard, the controller mapping, vibration, fine steering and the tilt of the console have only been tested as far as is possible on a PC (see `tests/`). The direction of the tilt (clockwise is right) and the strength of the vibration are the first things to check.
+- Not tested on hardware yet: sound, the on-screen keyboard, the controller mapping, vibration, direction steering has only been tested as far as is possible on a PC (see `tests/`). The strength of the vibration is the first thing to check.
 
 ## Building
 
@@ -173,7 +170,7 @@ The sources used to sit in one folder; they are now sorted (the Linux and Switch
 - `src/core/drally.c`: start in the folder of the NRO, write `log.txt`, read `SWITCH.CFG` and check the game files (`src/core/datacheck.c`) before anything else; `src/platform/switch/switch_error.c` shows the text screen.
 - `src/platform/switch/switch_config.c`: the settings file.
 - `src/core/frame_clock.c` and `src/platform/drally_linux_c.c`: vsync with a steady 70 frames a second (a clock that keeps the remainder), and the retrace waits are skipped when the picture waits for the screen.
-- `src/platform/switch/switch_steer.c`, `switch_gyro.c`: fine steering (the stick's position as how often the flag is on) and the tilt of the console; `race___40164h.c` adds them to the game's own steering flags.
+- `src/platform/switch/switch_steer.c`: stick steering (how far it is pushed, or where it points, as how often the flag is on); `race___40164h.c` adds it to the game's own steering flags.
 - `src/platform/switch/switch_rumble.c`: vibration, called from the race code for the player's car (`race_main.c`, `race___514d8h.c`).
 
 All Switch code is under `DR_SWITCH`; the Linux build behaves as before.

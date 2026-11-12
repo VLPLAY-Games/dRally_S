@@ -121,17 +121,8 @@ void SwitchInput_button(int button, int down){
         SW.button[button] = !!down;
         update_keys();
 
-        /* a click of the left stick: in a race it switches gyro steering on or off (and sets the
-           straight position), on a name entry screen it opens the on-screen keyboard again */
-        if((button == SW_LSTICK) && down){
-
-            if(SW.race){
-
-                SwitchRumble_event(SWITCHRUMBLE_BLIP, 0);
-                if(SwitchSteer_toggleGyro()) SwitchRumble_event(SWITCHRUMBLE_BLIP, 0);
-            }
-            else SwitchText_request();
-        }
+        /* a click of the left stick on a name entry screen opens the on-screen keyboard again */
+        if((button == SW_LSTICK) && down && !SW.race) SwitchText_request();
     }
 }
 

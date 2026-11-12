@@ -95,7 +95,7 @@ static const char * MSG_WELCOME[9] = {
 	[3] = "    PLUS-PAUSE                  ",
 	[4] = "    MINUS-ABORT RACE            ",
 	[5] = "   R3-TOGGLE STATUS BAR         ",
-	[6] = "   L3-GYRO STEERING ON/OFF      ",
+	[6] = "                                ",
 #else
 	[2] = " PRESS                          ",
 	[3] = "    F1-INFO SCREEN              ",

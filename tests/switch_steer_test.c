@@ -19,7 +19,6 @@ static void count(int ticks, int * l, int * r){
 int main(void){
 
     int l, r;
-    float roll;
     unsigned low, high, ms;
 
     SwitchConfig_defaults();
@@ -63,42 +62,6 @@ int main(void){
     SwitchConfig.analog_steering = 1;
     SwitchSteer_setStick(0.0f);
 
-    /* the tilt of the console: upright is 0 degrees, right is clockwise */
-    CHECK(SwitchSteer_rollFromAccel(0.0f, 1.0f, 0.0f, &roll) && fabsf(roll) < 0.01f);
-    CHECK(SwitchSteer_rollFromAccel(0.5f, 0.866f, 0.0f, &roll) && fabsf(roll-30.0f) < 0.1f);
-    CHECK(SwitchSteer_rollFromAccel(-0.5f, 0.866f, 0.0f, &roll) && fabsf(roll+30.0f) < 0.1f);
-    CHECK(!SwitchSteer_rollFromAccel(0.0f, 0.1f, 1.0f, &roll));     /* lying flat: cannot tell */
-
-    /* gyro steering is off until it is switched on */
-    SwitchSteer_feedAccel(0.0f, 1.0f, 0.0f);
-    CHECK(SwitchSteer_value() == 0.0f);
-    CHECK(SwitchSteer_toggleGyro() == 1);       /* the first reading after this is the straight position */
-    SwitchSteer_feedAccel(sinf(7.0f/57.2958f), cosf(7.0f/57.2958f), 0.0f);
-    CHECK(SwitchSteer_value() == 0.0f);         /* 7 degrees right when it was switched on: straight */
-
-    /* 10 degrees to the right of straight: part of the way (dead zone 3, range 25) */
-    {
-        int i;
-        for(i = 0; i < 40; i++) SwitchSteer_feedAccel(sinf(17.0f/57.2958f), cosf(17.0f/57.2958f), 0.0f);
-        CHECK(SwitchSteer_value() > 0.25f && SwitchSteer_value() < 0.45f);       /* 10 degrees from straight */
-        for(i = 0; i < 40; i++) SwitchSteer_feedAccel(sinf(47.0f/57.2958f), cosf(47.0f/57.2958f), 0.0f);
-        CHECK(SwitchSteer_value() == 1.0f);                         /* past the range: full */
-        for(i = 0; i < 40; i++) SwitchSteer_feedAccel(sinf(-33.0f/57.2958f), cosf(-33.0f/57.2958f), 0.0f);
-        CHECK(SwitchSteer_value() == -1.0f);
-        for(i = 0; i < 40; i++) SwitchSteer_feedAccel(sinf(9.0f/57.2958f), cosf(9.0f/57.2958f), 0.0f);
-        CHECK(SwitchSteer_value() == 0.0f);                         /* inside the dead zone */
-
-        /* straight can be set again, and the stick adds to the tilt */
-        for(i = 0; i < 40; i++) SwitchSteer_feedAccel(sinf(27.0f/57.2958f), cosf(27.0f/57.2958f), 0.0f);
-        SwitchSteer_recenter();
-        CHECK(SwitchSteer_value() == 0.0f);
-        SwitchSteer_setStick(0.5f);
-        CHECK(SwitchSteer_value() > 0.1f);
-        SwitchSteer_setStick(0.0f);
-    }
-    CHECK(SwitchSteer_toggleGyro() == 0);                           /* off again */
-    CHECK(SwitchSteer_value() == 0.0f);
-
     /* vibration: harder hit, stronger and longer; nothing for a scrape; the percentage scales it; off is off */
     CHECK(SwitchRumble_shape(SWITCHRUMBLE_IMPACT, 0x10000, 100, &low, &high, &ms) && low == 65535 && ms == 200);
     {
@@ -120,7 +83,6 @@ int main(void){
         SwitchConfig_defaults();
         SwitchConfig.stick_mode = 1;
         SwitchSteer_reset();
-        SwitchSteer_setGyroEnabled(0);
 
         /* the game's Direction for the screen directions: 0 is up, it grows toward the left */
         CHECK(fabsf(SwitchSteer_directionFor(0.0f, -1.0f)) < 0.01f);                       /* up */

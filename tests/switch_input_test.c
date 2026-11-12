@@ -131,16 +131,12 @@ int main(void){
         SwitchConfig.stick_mode = 0;
     }
 
-    /* the left stick click in a race switches gyro steering (with a short vibration each time) */
+    /* the left stick click in a race does nothing (no keyboard, no vibration) */
     {
         const int b = blips;
 
         SwitchInput_button(LSTICK, 1); SwitchInput_button(LSTICK, 0);
-        CHECK(SwitchSteer_gyroEnabled() == 1);
-        CHECK(blips == b+2);
-        SwitchInput_button(LSTICK, 1); SwitchInput_button(LSTICK, 0);
-        CHECK(SwitchSteer_gyroEnabled() == 0);
-        CHECK(blips == b+3);
+        CHECK(blips == b);
     }
     CHECK(keyboard_requests == 1);                      /* not counted as a keyboard request in a race */
 

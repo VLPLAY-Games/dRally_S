@@ -14,9 +14,6 @@ typedef struct {
     int stick_mode;         /* 0: the stick turns the car left and right; 1: the stick points where the car should go (on the screen) */
     int stick_deadzone;     /* 0..50 percent of the stick's travel that does nothing */
     int stick_invert_x;     /* 1: the left stick's left and right are swapped */
-    int gyro;               /* 1: steer by tilting the console (handheld mode) */
-    int gyro_range;         /* degrees of tilt for full steering */
-    int gyro_deadzone;      /* degrees of tilt that do nothing */
 } SwitchConfig_t;
 
 extern SwitchConfig_t SwitchConfig;
