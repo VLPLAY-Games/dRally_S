@@ -108,6 +108,8 @@ Players on a PC use the Linux build of dRally, which connects to `localhost:8888
 
 Not tried yet: a race with two players. The network code comes from the original project, which lists multiplayer as not working, so expect problems and send `log.txt` with a description.
 
+**A crash seen once (cause not known).** Right after "Connection established!" the game crashed once in the graphics driver while it uploaded the picture (`nvMapCreate` in the Atmosphère crash report, module `dRally`: a memory allocation that failed or returned nothing, and the driver did not check it). A later run did not crash and its log showed plenty of memory (title takeover mode: about 3 GB for the process, 166 MB of heap in use), so a lack of memory is not confirmed. Start the Homebrew Menu by holding **R** (title takeover, as for Quake 4) rather than through the Album. If you see the crash, send the crash report from `sdmc:/atmosphere/crash_reports/` together with `log.txt`.
+
 ### Touch screen
 
 In handheld mode the menus can be used by touch:
@@ -130,9 +132,9 @@ Sound goes through the console's audio renderer (`audren`), at the sample rate t
 
 ## Known limitations
 
-- The network race (see below) is new and has not been tried with two players yet.
+- The network race (see above) is new and has not been tried with two players yet; one crash right after connecting has been seen once (see the note there).
 - The game's own text entry only knows capitals, digits and a few signs, so other characters from the on-screen keyboard are dropped.
-- The menu entries for the PC joystick (Define Gamepad/Joystick, Gamepad/Joystick) and are switched off on the Switch: the console controller is always active.
+- The menu entries for the PC joystick (Define Gamepad/Joystick, Gamepad/Joystick) are switched off on the Switch: the console controller is always active.
 - Not tested yet: docked mode, touch in the 16:9 mode, controllers other than the built-in one.
 
 ## Building
