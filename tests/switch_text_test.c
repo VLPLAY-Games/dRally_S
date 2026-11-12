@@ -4,6 +4,8 @@
 #include "SDL.h"
 #include "switch.h"
 #include "../include/switch_text.h"
+#include "../include/switch_keys.h"
+#include "../include/switch_touch.h"
 
 const char * stub_keyboard_text = NULL;
 int stub_keyboard_shown = 0;
@@ -13,6 +15,8 @@ static SDL_Scancode typed[256];     /* what the game received, in order */
 static int typed_len = 0, held = 0;
 
 Uint32 SDL_GetTicks(void){ return now_ms; }
+static int touch_ignored = 0;
+void SwitchTouch_ignoreFor(unsigned now, unsigned ms){ (void)now; (void)ms; touch_ignored++; }
 Result swkbdCreate(SwkbdConfig * c, int n){ (void)c; (void)n; return 0; }
 void swkbdConfigMakePresetDefault(SwkbdConfig * c){ (void)c; }
 void swkbdConfigSetHeaderText(SwkbdConfig * c, const char * s){ (void)c; (void)s; }
@@ -44,6 +48,7 @@ static void run(int rounds){
     for(i = 0; i < rounds; i++){
 
         SwitchText_pump();
+        SwitchKeys_pump();
         last_key = 0;       /* the game polls its key */
         now_ms += 100;
     }
@@ -74,6 +79,8 @@ int main(void){
     CHECK(typed[8] == SDL_SCANCODE_9);
     CHECK(typed[9] == SDL_SCANCODE_MINUS);
     CHECK(held == 0);
+
+    CHECK(touch_ignored == 2);      /* the touches the system keyboard took are ignored */
 
     /* cancelled keyboard: nothing typed */
     typed_len = 0;

@@ -8,7 +8,9 @@ void dRally_Keyboard_break(SDL_Scancode);
 #if defined(DR_SWITCH)
 
 #include "switch_input.h"
+#include "switch_keys.h"
 #include "switch_text.h"
+#include "switch_touch.h"
 
 static int joysticks_opened = 0;
 
@@ -61,7 +63,9 @@ void IO_Loop(void){
         joysticks_opened = 1;
         switch_open_joysticks();
     }
+    SwitchTouch_poll();
     SwitchText_pump();
+    SwitchKeys_pump();
 #endif
 
     while(SDL_PollEvent(&e)){

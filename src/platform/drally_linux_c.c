@@ -69,6 +69,11 @@ unsigned int __GET_FRAME_COUNTER(void){
 		Ticks = SDL_GetTicks();
 
 		skip = NewTicks/FrameMs - 1;
+#if defined(DR_SWITCH)
+		/* After the HOME menu, sleep or the system keyboard the clock has jumped; the game must
+		   not catch up on seconds of frames (its timers would jump too). */
+		if(skip > 6) skip = 6;
+#endif // DR_SWITCH
 
 		INT8_FRAME_COUNTER += skip;
 		IRQ0_TimerISR();
@@ -275,6 +280,24 @@ void dRally_Display_init(int mode){
 		}
 	}
 }
+
+#if defined(DR_SWITCH)
+
+#include "switch_touch.h"
+
+/* A touch on the window (0..1 each way) to the game's screen: the picture is the logical size the
+   renderer was given (640x480 in the menus, 320x240 in a race), centred in the window. */
+void dRally_Display_mapTouch(float nx, float ny, int * gx, int * gy){
+
+	int ow = 1280, oh = 720;
+	const int lw = (GX.ActiveMode == VGA13) ? 320 : 640;
+	const int lh = (GX.ActiveMode == VGA13) ? 240 : 480;
+
+	if(GX.Renderer) SDL_GetRendererOutputSize(GX.Renderer, &ow, &oh);
+	SwitchTouch_mapToGame(nx, ny, ow, oh, lw, lh, gx, gy);
+}
+
+#endif // DR_SWITCH
 
 void dRally_Display_clean(void){
 

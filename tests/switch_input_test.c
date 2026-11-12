@@ -58,6 +58,25 @@ int main(void){
     SwitchInput_button(LSTICK, 1); SwitchInput_button(LSTICK, 0);
     CHECK(keyboard_requests == 1);
 
+    /* in a race Plus pauses (P), Minus leaves (Escape), B does nothing, R3 switches the view */
+    SwitchInput_setRace(1);
+    SwitchInput_button(B, 1); CHECK(makes[SDL_SCANCODE_ESCAPE] == 1);   /* still the count from above */
+    SwitchInput_button(B, 0);
+    SwitchInput_button(PLUS, 1); CHECK(makes[SDL_SCANCODE_P] == 1);
+    SwitchInput_button(PLUS, 0); CHECK(breaks[SDL_SCANCODE_P] == 1);
+    {
+        const int escapes = makes[SDL_SCANCODE_ESCAPE];
+        SwitchInput_button(B, 1); SwitchInput_button(B, 0);
+        CHECK(makes[SDL_SCANCODE_ESCAPE] == escapes);                   /* B does not leave the race */
+        SwitchInput_button(MINUS, 1); CHECK(makes[SDL_SCANCODE_ESCAPE] == escapes+1);
+        SwitchInput_button(MINUS, 0);
+    }
+    SwitchInput_button(RSTICK, 1); CHECK(makes[SDL_SCANCODE_TAB] == 1);
+    SwitchInput_button(RSTICK, 0);
+    SwitchInput_setRace(0);
+    SwitchInput_button(PLUS, 1); SwitchInput_button(PLUS, 0);
+    CHECK(makes[SDL_SCANCODE_P] == 1);                                  /* no pause key on the screens */
+
     /* numbers outside the table are ignored */
     SwitchInput_button(99, 1); SwitchInput_button(-1, 1);
 

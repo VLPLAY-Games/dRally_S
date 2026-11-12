@@ -120,6 +120,35 @@ void menu___13a98h(__DWORD__ A1){
 
 
 
+#if defined(DR_SWITCH)
+#include "switch_touch.h"
+
+/* A tap on a row of the menu selects it and confirms, as moving to it and pressing Enter does.
+   The rows are row_h tall from the box's top; a row that is switched off cannot be tapped.
+   Returns the row, or -1. */
+static int touch_row(menubox_t * mbox, int menu_i){
+
+	int tx, ty, row;
+
+	if(!SwitchTouch_takeTap(&tx, &ty)) return -1;
+
+	if((tx < (int)mbox->x-8)||(tx >= (int)(mbox->x+mbox->w)+8)||(ty < (int)mbox->y)||(mbox->row_h == 0)) return -1;
+
+	row = (ty-(int)mbox->y)/(int)mbox->row_h;
+	if((row < 0)||(row >= (int)mbox->row_n)||!___185b58h[menu_i][row]) return -1;
+
+	if(row != (int)mbox->row_i){
+
+		helper_menu(mbox, ___1a10e0h, menu_i);
+		mbox->row_i = row;
+		helper_menu(mbox, ___1a10cch, menu_i);
+		helper_icon(menu_i);
+	}
+
+	return row;
+}
+#endif // DR_SWITCH
+
 int ___146c4h_cdecl(__DWORD__ A1){
 
 	int 		rslt, n;
@@ -133,6 +162,18 @@ int ___146c4h_cdecl(__DWORD__ A1){
 		___2ab50h();
 		___2ab50h();
 		menu___13a98h(A1);	// SPINNING TIRE ICON
+#if defined(DR_SWITCH)
+		{
+			const int tapped = touch_row(&___185a5ch[A1], A1);
+
+			if(tapped >= 0){
+
+				rslt = tapped;
+				dRally_Sound_pushEffect(1, SFX_CLICK_4, 0, ___24cc54h_sfx_volume, 0x28000, 0x8000);
+			}
+		}
+#endif // DR_SWITCH
+
 		LastScan = ___5994ch();
 
 		if(A1 == 0){

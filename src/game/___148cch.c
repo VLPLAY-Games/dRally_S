@@ -2,6 +2,10 @@
 #include "drally_keyboard.h"
 #include "drally_fonts.h"
 #include "sfx.h"
+#if defined(DR_SWITCH)
+#include "switch_touch.h"
+#include "switch_keys.h"
+#endif
 
 
 	extern __BYTE__ ___185ba9h[];
@@ -73,6 +77,20 @@ int ___148cch_cdecl(int x, int y, __DWORD__ A3, __BOOL__ * IsToBreak){
 		___1a1e68h++;
 
 		if(___1a1e68h > 0x31) ___1a1e68h = 0;
+
+		#if defined(DR_SWITCH)
+		{
+			/* the box is 240 px wide: "yes" on the left half, "no" on the right; the question
+			   answers as if Y or N and Enter were pressed */
+			int tx, ty;
+
+			if(SwitchTouch_takeTap(&tx, &ty)&&(tx >= x)&&(tx < x+0xf0)&&(ty >= y-8)&&(ty < y+0x1c+8)){
+
+				SwitchKeys_press((tx < x+0x78) ? SDL_SCANCODE_Y : SDL_SCANCODE_N);
+				SwitchKeys_press(SDL_SCANCODE_RETURN);
+			}
+		}
+#endif // DR_SWITCH
 
 		switch(___5994ch()){
 		case DR_SCAN_ESCAPE:

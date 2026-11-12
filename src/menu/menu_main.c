@@ -155,7 +155,11 @@ void menu_main(void){
 	dRChatbox_push("           Welcome to Death Rally - Full version 1.1",            1);
 	dRChatbox_push("       Powered by dRally, open source Death Rally engine",        1);
 	dRChatbox_push("",                                                                1);
+#if defined(DR_SWITCH)
+	dRChatbox_push("  D-pad or touch to choose, A to confirm, B to go back.", 1);
+#else
 	dRChatbox_push(" Use arrow keys to change selection and press enter to confirm.", 1);
+#endif // DR_SWITCH
 	dRChatbox_push("",                                                                1);
 
 	___135fch(0, 371, 639, 109);	// Render Chatbox Delimiters

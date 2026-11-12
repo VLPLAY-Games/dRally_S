@@ -17,6 +17,7 @@ enum {
 };
 
 static struct {
+    int             race;
     unsigned char   button[SW_MAX_BUTTONS];
     int             axis_x, axis_y;
     int             hat;
@@ -49,14 +50,33 @@ static void update_keys(void){
     set_key(SDL_SCANCODE_DOWN,   down);
 
     set_key(SDL_SCANCODE_RETURN, SW.button[SW_A]);                       /* confirm */
-    set_key(SDL_SCANCODE_ESCAPE, SW.button[SW_B] || SW.button[SW_PLUS]); /* back / pause */
+    if(SW.race){
+
+        /* Escape ends the race, P pauses it: Plus pauses, Minus leaves, B is left alone */
+        set_key(SDL_SCANCODE_P,      SW.button[SW_PLUS]);
+        set_key(SDL_SCANCODE_ESCAPE, SW.button[SW_MINUS]);
+        set_key(SDL_SCANCODE_TAB,    SW.button[SW_RSTICK]);              /* view */
+        set_key(SDL_SCANCODE_F1,     0);
+    }
+    else {
+
+        set_key(SDL_SCANCODE_P,      0);
+        set_key(SDL_SCANCODE_TAB,    0);
+        set_key(SDL_SCANCODE_ESCAPE, SW.button[SW_B] || SW.button[SW_PLUS]); /* back */
+        set_key(SDL_SCANCODE_F1,     SW.button[SW_MINUS]);                   /* help */
+    }
     set_key(SDL_SCANCODE_LSHIFT, SW.button[SW_X]);                       /* turbo */
     set_key(SDL_SCANCODE_SPACE,  SW.button[SW_Y]);                       /* horn */
     set_key(SDL_SCANCODE_LALT,   SW.button[SW_L]);                       /* drop mine */
     set_key(SDL_SCANCODE_LCTRL,  SW.button[SW_R]);                       /* machine gun */
     set_key(SDL_SCANCODE_Z,      SW.button[SW_ZL]);                      /* brake */
     set_key(SDL_SCANCODE_A,      SW.button[SW_ZR]);                      /* accelerate */
-    set_key(SDL_SCANCODE_F1,     SW.button[SW_MINUS]);                   /* help */
+}
+
+void SwitchInput_setRace(int race){
+
+    SW.race = !!race;
+    update_keys();
 }
 
 void SwitchInput_button(int button, int down){

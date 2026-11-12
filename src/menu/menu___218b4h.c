@@ -2,6 +2,9 @@
 #include "drally_keyboard.h"
 #include "sfx.h"
 #include "drally_fonts.h"
+#if defined(DR_SWITCH)
+#include "switch_touch.h"
+#endif
 
 	extern __DWORD__ ___24cc58h_msx_volume;
 	extern __DWORD__ ___24cc54h_sfx_volume;
@@ -82,7 +85,22 @@ static int helper_volume2(const char * label, int vol, void (*vol_cb)(int)){
 
 		if((scankey == DR_SCAN_KP_ENTER)||(scankey == DR_SCAN_ESCAPE)||(D(___196a84h) != 0)) break;
 		scankey = ___5994ch();
-		
+#if defined(DR_SWITCH)
+		{
+			/* dragging along the bar sets the volume: the knob is 10 px wide and its left edge
+			   is at 329+vol, so a finger at x puts the middle of the knob (334+vol) there */
+			int tx, ty;
+
+			if(SwitchTouch_isDown(&tx, &ty)&&(tx >= 300)&&(tx <= 500)&&(ty >= 236)&&(ty <= 284)){
+
+				SwitchTouch_claim();
+				vol = tx-334;
+				if(vol < 0) vol = 0;
+				if(vol > 128) vol = 128;
+				vol &= ~1;
+			}
+		}
+#endif // DR_SWITCH
 		if((scankey == DR_SCAN_LEFT)&&(vol > 0)) vol -= 2;
 		if((scankey == DR_SCAN_KP_4)&&(vol > 0)) vol -= 2;
 		if((scankey == DR_SCAN_RIGHT)&&(vol < 128)) vol += 2;

@@ -39,22 +39,36 @@ The game keeps its settings (`DR.CFG`) and a `log.txt` in the same folder. `log.
 
 ## Controls
 
-The controller works as the keyboard the game was written for.
+The controller works as the keyboard the game was written for. The game steers, brakes and accelerates with on/off keys (there is no analog steering), and the Up and Down arrows always accelerate and brake, so the stick or D-pad alone is enough to drive.
 
-| Controller | Game |
-| --- | --- |
-| D-pad, left stick | Steer, move in menus |
-| ZR | Accelerate (key A) |
-| ZL | Brake (key Z) |
-| R | Machine gun (Left Ctrl) |
-| L | Drop mine (Left Alt) |
-| X | Turbo boost (Left Shift) |
-| Y | Horn (Space) |
-| A | Confirm (Enter) |
-| B, + | Back, pause (Escape) |
-| - | Help (F1) |
+| Controller | In the menus | In a race |
+| --- | --- | --- |
+| D-pad, left stick | Move | Steer; up accelerates, down brakes |
+| ZR | | Accelerate |
+| ZL | | Brake |
+| R | | Machine gun |
+| L | | Drop mine |
+| X | | Turbo boost |
+| Y | | Horn |
+| A | Confirm | |
+| B | Back | (nothing) |
+| + | Back | **Pause** |
+| - | Help (F1) | **Leave the race** |
+| Right stick click | | Switch the view (Tab) |
 
-The game controls can still be changed in its own options menu. The first 200 controller button presses are written to `log.txt` (`[dRally.INPUT]`), which helps to check the mapping.
+In a race the game ends the race the moment Escape is pressed and pauses on P, so **+ pauses and - leaves**, and B does nothing there. The game controls can still be changed in its own options menu. The first 200 controller button presses are written to `log.txt` (`[dRally.INPUT]`), which helps to check the mapping.
+
+### Touch screen
+
+In handheld mode the menus can be used by touch:
+
+- **Menus:** tap a row to choose it and confirm.
+- **Volume sliders** (Configure): drag along the bar.
+- **Yes / no questions:** tap "yes" (left half) or "no" (right half).
+- **Anywhere else:** a **tap** is Enter, a **swipe** is the arrow keys (one key per 40 screen pixels of movement) and a **tap with two fingers** is Back (Escape).
+- **In a race** touching the screen never steers or confirms; only a tap with two fingers works, and it **pauses**.
+
+The touch screen does not exist when the console is docked.
 
 ### Typing names
 
@@ -68,6 +82,7 @@ Sound goes through the console's audio renderer (`audren`), at the sample rate t
 
 - Network play (IPX) is not part of the Switch build.
 - The game's own text entry only knows capitals, digits and a few signs, so other characters from the on-screen keyboard are dropped.
+- The menu entries for the PC joystick (Define Gamepad/Joystick, Gamepad/Joystick) and "Multiplayer Race" are switched off on the Switch: the console controller is always active and the network play is not in the build.
 - Not tested on hardware yet: sound, the on-screen keyboard and the controller mapping have only been tested as far as is possible on a PC (see `tests/`).
 
 ## Building
@@ -81,7 +96,7 @@ make -f Makefile.switch        # builds dRally.nro
 
 `make -f Makefile.switch clean` removes the build. The Linux build is the plain `Makefile`. Both use the object lists in `objs.mk`.
 
-`tests/run.sh` builds and runs the host test of the controller mapping (a C compiler is enough).
+`tests/run.sh` builds and runs the host tests of the Switch code (controller mapping, on-screen keyboard, touch gestures); a C compiler is enough.
 
 ## Repository layout
 
@@ -107,7 +122,12 @@ The sources used to sit in one folder; they are now sorted (the Linux and Switch
 - `src/platform/switch/switch_input.c`: the controller to keyboard mapping.
 - `src/platform/switch/switch_audio.c`: audio through `audren` (with SDL audio as a fallback in `src/sound/sound_api.c`).
 - `src/platform/switch/switch_text.c`: the on-screen keyboard; the entry screen (`src/game/___17510h.c`) is wrapped to start and stop it.
-- `src/platform/events.c`: controller events and the keyboard pump (Switch only).
+- `src/platform/switch/switch_keys.c`: key presses the console itself produces (on-screen keyboard, touch gestures), held until the game has read them.
+- `src/platform/switch/switch_touch.c`, `switch_touch_hid.c`: touch gestures and the touch panel (HID); the menus, volume sliders and the yes/no question read taps and drags (`src/game/___146c4h.c`, `src/menu/menu___218b4h.c`, `src/game/___148cch.c`).
+- `src/platform/events.c`: controller events and the pumps (Switch only).
+- `src/race/race_main.c`: wrapped, so the controls and the touch screen know a race is running.
+- `src/menu/menu_data.c`, `menu_main.c`: "Exit Game" instead of "Exit To DOS", switched-off entries, a hint line for the console.
+- `src/platform/drally_linux_c.c`: also a limit on how many frames the game catches up after the HOME menu or the system keyboard.
 - `src/platform/drally_linux_c.c`: the picture is converted once per frame into one texture kept for the whole run, a fullscreen window, and a software renderer fallback.
 - `src/core/drally.c`: start in the folder of the NRO and write `log.txt`.
 

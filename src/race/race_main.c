@@ -214,6 +214,13 @@ static void race___526ach_helper(int n){ D(___243c60h) = n; race___526ach(); }
 static void race___4ff50h_helper(int n){ D(___243c60h) = n; race___4ff50h(); }
 
 // ___56774h
+#if defined(DR_SWITCH)
+#include "switch_touch.h"
+#include "switch_input.h"
+/* In a race the touch screen only pauses (a tap with two fingers); it never steers. */
+#define race_main race_main_body
+#endif // DR_SWITCH
+
 void race_main(int MyIndex, int NumCars){		// my_position_index, number_of_racers
 
 	__DWORD__ 	eax, ebx, ecx, edx;
@@ -837,3 +844,16 @@ void race_main(int MyIndex, int NumCars){		// my_position_index, number_of_racer
 	race_free();
 	kmap[DR_SCAN_ESCAPE] = 0;
 }
+
+#if defined(DR_SWITCH)
+#undef race_main
+
+void race_main(int MyIndex, int NumCars){
+
+	SwitchTouch_setMode(SWITCHTOUCH_RACE);
+	SwitchInput_setRace(1);
+	race_main_body(MyIndex, NumCars);
+	SwitchInput_setRace(0);
+	SwitchTouch_setMode(SWITCHTOUCH_SCREENS);
+}
+#endif // DR_SWITCH

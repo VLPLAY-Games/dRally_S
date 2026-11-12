@@ -1,4 +1,6 @@
 #include "switch_text.h"
+#include "switch_keys.h"
+#include "switch_touch.h"
 
 #include <SDL.h>
 #include <switch.h>
@@ -6,21 +8,13 @@
 #include <stdio.h>
 #include <string.h>
 
-void dRally_Keyboard_make(SDL_Scancode);
-void dRally_Keyboard_break(SDL_Scancode);
-int dRally_Keyboard_lastKey(void);
-
 #define OPEN_DELAY_MS   500     /* let the entry screen draw before the keyboard covers it */
-#define QUEUE_SIZE      64
 
 static struct {
     int             active;
     int             max_chars;
     int             want_open;
     Uint32          begin_ms;
-    SDL_Scancode    queue[QUEUE_SIZE];
-    int             queue_len, queue_pos;
-    SDL_Scancode    pressed;    /* the key made and not yet released, 0 for none */
 } T = {0};
 
 void SwitchText_begin(int max_chars){
@@ -34,7 +28,7 @@ void SwitchText_begin(int max_chars){
 
 void SwitchText_end(void){
 
-    if(T.pressed) dRally_Keyboard_break(T.pressed);
+    SwitchKeys_clear();
     memset(&T, 0, sizeof(T));
 }
 
@@ -62,11 +56,6 @@ static SDL_Scancode scancode_for(int c){
     return SDL_SCANCODE_UNKNOWN;
 }
 
-static void queue_key(SDL_Scancode sc){
-
-    if(T.queue_len < QUEUE_SIZE) T.queue[T.queue_len++] = sc;
-}
-
 static void show_keyboard(void){
 
     SwkbdConfig kbd;
@@ -75,6 +64,8 @@ static void show_keyboard(void){
 
     T.want_open = 0;
 
+    /* the touches that went to the keyboard must not reach the game when it closes */
+    SwitchTouch_ignoreFor(SDL_GetTicks(), 0);
     if(R_FAILED(swkbdCreate(&kbd, 0))) return;
     swkbdConfigMakePresetDefault(&kbd);
     swkbdConfigSetHeaderText(&kbd, "Enter a name");
@@ -84,17 +75,19 @@ static void show_keyboard(void){
     if(R_FAILED(swkbdShow(&kbd, text, sizeof(text))) || !text[0]){
 
         swkbdClose(&kbd);
+        SwitchTouch_ignoreFor(SDL_GetTicks(), 400);
         return;
     }
     swkbdClose(&kbd);
+    SwitchTouch_ignoreFor(SDL_GetTicks(), 400);
 
     /* clear what the screen holds, then type the new text */
-    for(n = 0; n < T.max_chars; n++) queue_key(SDL_SCANCODE_BACKSPACE);
+    for(n = 0; n < T.max_chars; n++) SwitchKeys_press(SDL_SCANCODE_BACKSPACE);
     for(n = 0; (text[n] != 0) && (n < T.max_chars); n++){
 
         const SDL_Scancode sc = scancode_for((unsigned char)text[n]);
 
-        if(sc != SDL_SCANCODE_UNKNOWN) queue_key(sc);
+        if(sc != SDL_SCANCODE_UNKNOWN) SwitchKeys_press(sc);
     }
 }
 
@@ -102,28 +95,8 @@ void SwitchText_pump(void){
 
     if(!T.active) return;
 
-    /* a key is held until the game has read it, then released */
-    if(T.pressed){
-
-        if(dRally_Keyboard_lastKey() == 0){
-
-            dRally_Keyboard_break(T.pressed);
-            T.pressed = SDL_SCANCODE_UNKNOWN;
-        }
-        return;
-    }
-
-    if(T.queue_pos < T.queue_len){
-
-        if(dRally_Keyboard_lastKey() == 0){
-
-            T.pressed = T.queue[T.queue_pos++];
-            dRally_Keyboard_make(T.pressed);
-        }
-        return;
-    }
-
-    T.queue_len = T.queue_pos = 0;
+    /* wait until the typed keys have all gone to the game */
+    if(SwitchKeys_busy()) return;
 
     if(T.want_open && (SDL_GetTicks()-T.begin_ms >= OPEN_DELAY_MS)) show_keyboard();
 }
