@@ -32,7 +32,7 @@ The game is playable from the menus to the races, with sound, vibration and touc
 | Picture | 640x480 menus and 320x240 races, smooth scaling by default; optional **smart scaling** (whole-number enlargement, sharp pixels) and **16:9** stretch, both in the game's Configure menu |
 | Sound | Through the console's audio renderer (`audren`) |
 | Controls | The console's controllers; the left stick **points where the car should go on the screen**; vibration; **touch screen in the menus**; system on-screen keyboard for names |
-| Network play | Not part of the Switch build |
+| Network play | **Experimental** (new): an IPX race through a small server on a computer in your network (`ipxnet`), set in `SWITCH.CFG`; not tried with two players yet |
 
 **What was tested:** a Switch in handheld mode, with the original game files from the Death Rally 1.1 CD: menus, races, steering with the stick, vibration and the 16:9 mode. Not tested yet: docked mode, touch in the 16:9 mode, and controllers other than the built-in one.
 
@@ -115,9 +115,9 @@ The other settings are in `sdmc:/switch/dRally/SWITCH.CFG` (a text file, explain
 
 ## Known limitations
 
-- Network play (IPX) is not part of the Switch build.
+- Network play is experimental and needs the `ipxnet` server on a computer (see [SWITCH.md](SWITCH.md#network-race-experimental)).
 - The game's text entry only knows capitals, digits and a few signs; other characters from the on-screen keyboard are dropped.
-- Menu entries for the PC joystick and "Multiplayer Race" are switched off.
+- The menu entries for the PC joystick are switched off.
 - The touch screen only works in the menus and does not exist when the console is docked.
 - 16:9 stretches everything; the game was made for 4:3.
 

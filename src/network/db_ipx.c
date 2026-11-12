@@ -12,9 +12,13 @@
 
 #define CONVIPX(hostvar) hostvar[0], hostvar[1], hostvar[2], hostvar[3], hostvar[4], hostvar[5]
 
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ > 201710L)
+/* C23 (the Switch compiler's default): bool, true and false are keywords */
+#else
 typedef int             bool;
 #define true            1
 #define false           0
+#endif
 
 typedef unsigned char   Bit8u;
 typedef signed short    Bit16s;

@@ -43,6 +43,20 @@ int main(void){
         remove(path);
     }
 
+    /* the network race: a server address (text) and a port */
+    SwitchConfig_defaults();
+    CHECK(SwitchConfig.ipx_server[0] == 0 && SwitchConfig.ipx_port == 8888);
+    SwitchConfig_parse("ipx_server = 192.168.1.20   # the computer\nipx_port = 9000\n");
+    CHECK(strcmp(SwitchConfig.ipx_server, "192.168.1.20") == 0);
+    CHECK(SwitchConfig.ipx_port == 9000);
+    SwitchConfig_parse("ipx_server = my-pc.local\nipx_port = 0\n");
+    CHECK(strcmp(SwitchConfig.ipx_server, "my-pc.local") == 0);
+    CHECK(SwitchConfig.ipx_port == 1);              /* limited */
+    SwitchConfig_parse("ipx_server =\n");
+    CHECK(SwitchConfig.ipx_server[0] == 0);         /* empty: network off */
+    SwitchConfig_parse(SwitchConfig_template());    /* the template keeps the network off */
+    CHECK(SwitchConfig.ipx_server[0] == 0 && SwitchConfig.ipx_port == 8888);
+
     /* saving writes the template with the current values; loading it again gives the same settings */
     {
         const char * path = "/tmp/switch_config_save_test.cfg";
@@ -53,6 +67,8 @@ int main(void){
         SwitchConfig.scaling = 1;
         SwitchConfig.widescreen = 1;
         SwitchConfig.stick_deadzone = 40;
+        snprintf(SwitchConfig.ipx_server, sizeof(SwitchConfig.ipx_server), "%s", "10.0.0.5");
+        SwitchConfig.ipx_port = 9001;
         SwitchConfig_save(path);
 
         f = fopen(path, "rb");
@@ -64,6 +80,7 @@ int main(void){
         SwitchConfig_defaults();
         SwitchConfig_load(path);
         CHECK(SwitchConfig.scaling == 1 && SwitchConfig.widescreen == 1 && SwitchConfig.stick_deadzone == 40);
+        CHECK(strcmp(SwitchConfig.ipx_server, "10.0.0.5") == 0 && SwitchConfig.ipx_port == 9001);
         CHECK(SwitchConfig.vsync == 1 && SwitchConfig.stick_invert_x == 0);
         remove(path);
     }

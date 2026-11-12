@@ -16,4 +16,5 @@ ${CC:-cc} -Wall -I../include -o switch_config_test switch_config_test.c ../src/p
 ./switch_config_test
 ${CC:-cc} -Wall -I../include -o switch_steer_test switch_steer_test.c ../src/platform/switch/switch_steer.c ../src/platform/switch/switch_config.c ../src/platform/switch/switch_rumble.c -lm
 ./switch_steer_test
+python3 ipxnet_test.py
 rm -f switch_steer_test frame_clock_test switch_config_test switch_input_test switch_text_test switch_touch_test datacheck_test

@@ -9,6 +9,8 @@ SwitchConfig_t SwitchConfig;
 
 void SwitchConfig_defaults(void){
 
+    SwitchConfig.ipx_server[0] = 0;
+    SwitchConfig.ipx_port = 8888;
     SwitchConfig.vsync = 1;
     SwitchConfig.scaling = 0;
     SwitchConfig.widescreen = 0;
@@ -24,7 +26,8 @@ static int clamp(int v, int lo, int hi){ return (v < lo) ? lo : ((v > hi) ? hi :
 
 static void set_value(const char * name, int value){
 
-    if(!strcmp(name, "vsync")) SwitchConfig.vsync = !!value;
+    if(!strcmp(name, "ipx_port")) SwitchConfig.ipx_port = clamp(value, 1, 65535);
+    else if(!strcmp(name, "vsync")) SwitchConfig.vsync = !!value;
     else if(!strcmp(name, "widescreen")) SwitchConfig.widescreen = !!value;
     else if(!strcmp(name, "scaling")) SwitchConfig.scaling = clamp(value, 0, 1);
     else if(!strcmp(name, "rumble")) SwitchConfig.rumble = !!value;
@@ -62,7 +65,14 @@ void SwitchConfig_parse(const char * text){
         while((eq > name) && isspace((unsigned char)eq[-1])) *--eq = 0;
         while(isspace((unsigned char)*value)) value++;
 
-        if(*name && (isdigit((unsigned char)*value) || (*value == '-'))) set_value(name, atoi(value));
+        if(!strcmp(name, "ipx_server")){
+
+            /* the one text setting: a host name or an address, up to the end of the line */
+            size_t len = strlen(value);
+            while((len > 0) && isspace((unsigned char)value[len-1])) value[--len] = 0;
+            snprintf(SwitchConfig.ipx_server, sizeof(SwitchConfig.ipx_server), "%s", value);
+        }
+        else if(*name && (isdigit((unsigned char)*value) || (*value == '-'))) set_value(name, atoi(value));
     }
 }
 
@@ -74,6 +84,13 @@ const char * SwitchConfig_template(void){
         "# 1: the picture waits for the screen (no tearing). 0: off. Turn it off if the game runs\n"
         "# too slowly or stutters.\n"
         "vsync = 1\n"
+        "\n"
+        "# Network race (Multiplayer Race in the main menu). The game talks IPX through a small server\n"
+        "# (ipxnet, in the ipxnet folder of the sources) that runs on a computer in your network: all\n"
+        "# players connect to the same one. ipx_server is that computer's address (for example\n"
+        "# 192.168.1.20) and ipx_port its UDP port. Leave ipx_server empty to switch the network off.\n"
+        "ipx_server =\n"
+        "ipx_port = 8888\n"
         "\n"
         "# Picture scaling. 0: smooth (the picture is blurred a little when enlarged). 1: smart: the\n"
         "# picture is first enlarged by a whole number (sharp pixels), then fitted to the screen\n"
@@ -105,6 +122,8 @@ const char * SwitchConfig_template(void){
 }
 
 static int get_value(const char * name, int * value){
+
+    if(!strcmp(name, "ipx_port")){ *value = SwitchConfig.ipx_port; return 1; }
 
     if(!strcmp(name, "vsync")) *value = SwitchConfig.vsync;
     else if(!strcmp(name, "scaling")) *value = SwitchConfig.scaling;
@@ -138,7 +157,8 @@ void SwitchConfig_save(const char * path){
         p += n;
         if(*p == '\n') p++;
 
-        if((line[0] != '#') && (sscanf(line, "%63s = %d", name, &value) == 2) && get_value(name, &value)) fprintf(f, "%s = %d\n", name, value);
+        if((line[0] != '#') && !strncmp(line, "ipx_server", 10)) fprintf(f, "ipx_server = %s\n", SwitchConfig.ipx_server);
+        else if((line[0] != '#') && (sscanf(line, "%63s = %d", name, &value) == 2) && get_value(name, &value)) fprintf(f, "%s = %d\n", name, value);
         else fprintf(f, "%s\n", line);
     }
     fclose(f);

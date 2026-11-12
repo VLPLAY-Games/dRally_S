@@ -1,5 +1,8 @@
 #include "drally.h"
 #include "drally_ipx.h"
+#if defined(DR_SWITCH)
+#include "switch_config.h"
+#endif
 
 void handleIpxRequest(void);
 int ipx_connect(const char *, __DWORD__);
@@ -20,7 +23,18 @@ __DWORD__ NovellNetWare_IPX_InstallationCheck(void){
 
     printf("[dRally.Network] IPX_InstallationCheck\n");
 
+#if defined(DR_SWITCH)
+    /* the server named in SWITCH.CFG; without one there is no network */
+    if(!SwitchConfig.ipx_server[0]){
+
+        printf("[dRally.Network] no ipx_server in SWITCH.CFG\n");
+        return 0;
+    }
+
+    return ipx_connect(SwitchConfig.ipx_server, SwitchConfig.ipx_port) ? 0xff : 0;
+#else
     return ipx_connect("localhost", 8888) ? 0xff : 0;
+#endif // DR_SWITCH
 }
 
 __DWORD__ NovellNetWare_IPX_GetDriverMaximumPacketSize(void){

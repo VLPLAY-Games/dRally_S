@@ -5,6 +5,8 @@
    and explanations the first time the game runs). One "name = value" per line; # starts a comment. */
 
 typedef struct {
+    char ipx_server[64];    /* network race: host name or address of the IPX tunnelling server (ipxnet); empty: no network */
+    int ipx_port;           /* its UDP port (8888 by default) */
     int vsync;              /* 1: the picture waits for the screen (no tearing); 0: off */
     int widescreen;         /* 1: the picture is stretched over the whole 16:9 screen; 0: 4:3 with black bars */
     int scaling;            /* 0: smooth (bilinear); 1: smart (whole-number enlargement, then smoothed to the screen) */

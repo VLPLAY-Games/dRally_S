@@ -24,11 +24,7 @@ menubox_t ___185a5ch[9] = {
 };
 
 __BYTE__ ___185b58h[9][9] = {
-#if defined(DR_SWITCH)
-/*0*/   { 1,0,1,1,1,1,1,0,0 },	// no "Multiplayer Race": the IPX network play is not in the Switch build
-#else
 /*0*/   { 1,1,1,1,1,1,1,0,0 },
-#endif // DR_SWITCH
 /*1*/   { 1,0,0,1,0,1,0,0,0 },
 /*2*/   { 0,0,1,1,1,1,1,1,0 },
 #if defined(DR_SWITCH)

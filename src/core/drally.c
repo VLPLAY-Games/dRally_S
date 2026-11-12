@@ -65,6 +65,10 @@ static void dRally_Switch_init(int argc, char * argv[]){
 	printf("dRally for Nintendo Switch, running in %s\n", dir);
 
 	SwitchConfig_load("SWITCH.CFG");
+#if defined(DR_MULTIPLAYER)
+	/* BSD sockets for the network race (SDL2_net); harmless when the network is not used */
+	socketInitializeDefault();
+#endif
 	printf("Settings: vsync %d, scaling %d, widescreen %d, rumble %d (%d%%), analog steering %d (dead zone %d%%, invert %d)\n",
 		SwitchConfig.vsync, SwitchConfig.scaling, SwitchConfig.widescreen, SwitchConfig.rumble, SwitchConfig.rumble_percent, SwitchConfig.analog_steering,
 		SwitchConfig.stick_deadzone, SwitchConfig.stick_invert_x);

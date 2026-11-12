@@ -87,6 +87,7 @@ The picture waits for the screen (vsync, no tearing) while the game keeps its ow
 | Setting | Default | Meaning |
 | --- | --- | --- |
 | `vsync` | 1 | the picture waits for the screen |
+| `ipx_server`, `ipx_port` | empty, 8888 | address and UDP port of the ipxnet server for the network race (empty: network off) |
 | `widescreen` | 0 | 1: stretch the picture over the whole 16:9 screen (also in the game's Configure menu, "Screen Mode") |
 | `scaling` | 0 | 0: smooth. 1: smart, whole-number enlargement first (sharp pixels), then fitted to the screen (also in the Configure menu, "Smart Scaling") |
 | `rumble`, `rumble_percent` | 1, 100 | vibration in races and how strong |
@@ -94,6 +95,18 @@ The picture waits for the screen (vsync, no tearing) while the game keeps its ow
 | `stick_deadzone` | 15 | percent of the stick's travel that does nothing |
 | `stick_mode` | 1 | 1: the stick points where the car should go on the screen; 0: it turns the car left and right |
 | `stick_invert_x` | 0 | 1 swaps left and right of the left stick |
+
+### Network race (experimental)
+
+The game plays over the network with the IPX protocol of old local networks. dRally sends the IPX packets inside UDP to one small server, which hands them on to the other players. Every player connects to the same server, which runs on a computer in your network (not on the console).
+
+1. **Start the server** on a computer in the same network: `python3 ipxnet/ipxnet.py 8888` (only Python 3 is needed; the port is the one the Switch uses by default). `ipxnet/ipxnet.c` is the same server in C and needs SDL2 and SDL2_net. Allow UDP port 8888 in the computer's firewall.
+2. **Tell the Switch where it is:** in `SWITCH.CFG` set `ipx_server` to the computer's address (for example `ipx_server = 192.168.1.20`) and, if you used another port, `ipx_port`. With `ipx_server` empty the network is off.
+3. **Play:** every player chooses **Multiplayer Race** in the main menu. The server prints a line for each player that connects, and `log.txt` has `[dRally.Network]` lines.
+
+Players on a PC use the Linux build of dRally, which connects to `localhost:8888` (the source says so in `src/network/network.c`) and so needs the server on the same computer or a change there. The Switch needs a Wi-Fi connection to the same network.
+
+Not tried yet: a race with two players. The network code comes from the original project, which lists multiplayer as not working, so expect problems and send `log.txt` with a description.
 
 ### Touch screen
 
@@ -117,9 +130,9 @@ Sound goes through the console's audio renderer (`audren`), at the sample rate t
 
 ## Known limitations
 
-- Network play (IPX) is not part of the Switch build.
+- The network race (see below) is new and has not been tried with two players yet.
 - The game's own text entry only knows capitals, digits and a few signs, so other characters from the on-screen keyboard are dropped.
-- The menu entries for the PC joystick (Define Gamepad/Joystick, Gamepad/Joystick) and "Multiplayer Race" are switched off on the Switch: the console controller is always active and the network play is not in the build.
+- The menu entries for the PC joystick (Define Gamepad/Joystick, Gamepad/Joystick) and are switched off on the Switch: the console controller is always active.
 - Not tested yet: docked mode, touch in the 16:9 mode, controllers other than the built-in one.
 
 ## Building
@@ -151,7 +164,7 @@ The sources used to sit in one folder; they are now sorted (the Linux and Switch
 | `src/platform/` | the SDL layer: window, keyboard, events |
 | `src/platform/dos/` | what DOS and the Watcom runtime gave the game: interrupts, memory, FPU, random numbers |
 | `src/platform/switch/` | the Nintendo Switch code: controller, audio (`audren`), on-screen keyboard |
-| `tools/` | helper scripts; `ipxnet/` is the IPX server; `tests/` are host tests of the Switch code |
+| `tools/` | helper scripts; `ipxnet/` is the IPX server (`ipxnet.py` needs only Python 3); `tests/` are host tests of the Switch code |
 
 ## What was changed for the Switch
 

@@ -25,10 +25,10 @@ ARCH     := -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 CFLAGS   := -O2 -g -ffunction-sections -fno-strict-aliasing -fwrapv -w $(ARCH) \
             $(shell $(PKGCONFIG) --cflags sdl2) -I$(DEVKITPRO)/libnx/include -Iinclude
 # DR_LETTERBOX: keep the 4:3 picture and scale it inside the 16:9 screen.
-# No DR_MULTIPLAYER / IPXNET: the IPX network play is not part of the Switch build.
-DEFINES  := -DDR_LETTERBOX -DDR_SWITCH
+# DR_MULTIPLAYER / IPXNET: the network race, IPX tunnelled over UDP to an ipxnet server (SDL2_net).
+DEFINES  := -DDR_LETTERBOX -DDR_SWITCH -DDR_MULTIPLAYER -DIPXNET
 LDFLAGS  := -specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(BUILD)/$(APP_NAME).map
-LIBS     := $(shell $(PKGCONFIG) --libs sdl2) -lm
+LIBS     := -lSDL2_net $(shell $(PKGCONFIG) --libs sdl2) -lm
 
 include objs.mk
 
