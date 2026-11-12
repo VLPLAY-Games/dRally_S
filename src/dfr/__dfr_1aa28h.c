@@ -63,7 +63,7 @@ __DWORD__ ___1aa28h(__DWORD__ A1, __DWORD__ A2, __DWORD__ A3){
 		eax <<= 7;
 		eax += edx;
 		ecx = eax+0x28;
-		___12e78h_cdecl(___1a1108h, (font_props_t *)___185c0bh, "Press ESC to leave netgame", ecx);
+		___12e78h_cdecl(___1a1108h, (font_props_t *)___185c0bh, DR_TXT_LEAVE_NETGAME, ecx);
 		 ___12cb8h__VESA101_PRESENTSCREEN();
 		eax = __GET_TIMER_TICKS();
 		edx = eax;

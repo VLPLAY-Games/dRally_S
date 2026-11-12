@@ -3,7 +3,7 @@
 **Death Rally (1996) on the Nintendo Switch.** A port of the open source [dRally](https://github.com/BSzili/dRally) engine to the Switch homebrew platform (devkitA64 / libnx / SDL2), built around your own copy of the game.
 
 [![Platform](https://img.shields.io/badge/platform-Nintendo%20Switch-e60012.svg)](#requirements)
-[![Status](https://img.shields.io/badge/status-1.0.0-d97a1f.svg)](#status)
+[![Status](https://img.shields.io/badge/status-1.1.0-d97a1f.svg)](#status)
 [![Licence](https://img.shields.io/badge/Licence-MIT-blue.svg)](LICENSE)
 
 > [!IMPORTANT]
@@ -24,7 +24,7 @@
 
 ## Status
 
-The game is playable from the menus to the races, with sound, vibration and touch control in the menus. This is the 1.0.0 line of the Switch port, on the `master` branch. The `switch` branch is used for testing, and `upstream-master` keeps the state of the repository before the port.
+The game is playable from the menus to the races, with sound, vibration and touch control in the menus. This is the 1.1.0 line of the Switch port; the `master` branch has the last release. The `switch` branch is used for testing, and `upstream-master` keeps the state of the repository before the port.
 
 | Area | State |
 | --- | --- |
@@ -33,6 +33,8 @@ The game is playable from the menus to the races, with sound, vibration and touc
 | Sound | Through the console's audio renderer (`audren`) |
 | Controls | The console's controllers; the left stick **points where the car should go on the screen**; vibration; **touch screen in the menus**; system on-screen keyboard for names |
 | Network play | **Experimental** (new): an IPX race through a small server on a computer in your network (`ipxnet`), set in `SWITCH.CFG`; not tried with two players yet |
+
+**New in 1.1.0:** the **network race** (experimental): choose Multiplayer Race, enter your name, then the server address with the keyboard; the other players join through one small server (`ipxnet`, a Python script in the sources) that runs on a computer in your network. The connection to the server works; a race with two players has not been tried yet. See [SWITCH.md](SWITCH.md#network-race-experimental).
 
 **What was tested:** a Switch in handheld mode, with the original game files from the Death Rally 1.1 CD: menus, races, steering with the stick, vibration and the 16:9 mode. Not tested yet: docked mode, touch in the 16:9 mode, and controllers other than the built-in one.
 

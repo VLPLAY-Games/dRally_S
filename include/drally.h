@@ -201,11 +201,21 @@ void switch_b(__POINTER__, __POINTER__);
 #define DR_TXT_CONTINUE_DOTS        "Press A button to continue..."
 #define DR_TXT_REENTER              "Press A button to re-enter."
 #define DR_TXT_CAR_COLOR_ENTER      "of your car and press A"
+#define DR_TXT_ALL_ARRIVED          "Press A when all players have arrived"
+#define DR_TXT_CLOSE_GAME           "or press B to close your game."
+#define DR_TXT_LOOKING_FOR_NETGAMES "Looking for netgames, press A to join..."
+#define DR_TXT_LEAVE_NETGAME        "Press B to leave netgame"
+#define DR_TXT_ABORT                "Press B to abort"
 #else
 #define DR_TXT_CONTINUE             "Press any key to continue."
 #define DR_TXT_CONTINUE_DOTS        "Press any key to continue..."
 #define DR_TXT_REENTER              "Press any key to re-enter."
 #define DR_TXT_CAR_COLOR_ENTER      "of your car and press Enter"
+#define DR_TXT_ALL_ARRIVED          "Press ENTER when all players have arrived"
+#define DR_TXT_CLOSE_GAME           "or press ESC to close your game."
+#define DR_TXT_LOOKING_FOR_NETGAMES "Looking for netgames, press enter to join..."
+#define DR_TXT_LEAVE_NETGAME        "Press ESC to leave netgame"
+#define DR_TXT_ABORT                "Press ESC to abort"
 #endif
 
 #endif // __DRALLY_H

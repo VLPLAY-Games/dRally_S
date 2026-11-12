@@ -280,7 +280,7 @@ void ___1b140h(void){
                     ___13710h(0, 0);
                     ___13710h(2, 0);
                     ___13248h_cdecl(D(esp+0x10), D(esp+0xc), 0x1c2, 0x10d, 1);
-                    ___12e78h_v3(___1a1108h___185c0bh, "Looking for netgames, press enter to join...", D(esp+0x18)%0x280, D(esp+0x18)/0x280);
+                    ___12e78h_v3(___1a1108h___185c0bh, DR_TXT_LOOKING_FOR_NETGAMES, D(esp+0x18)%0x280, D(esp+0x18)/0x280);
                     B(esp+0x24) = 1;
                 }
 

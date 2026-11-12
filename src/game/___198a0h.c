@@ -197,8 +197,8 @@ __DWORD__ ___198a0h(void){
     B(___1a112ch__VESA101_ACTIVESCREEN_PTR+0x280*(D(esp+0xdc)+0x68)+D(esp+0xc4)+0x57) = 0xf;
 
     ___12e78h_v3(___1a1108h___185c0bh, "Initializing a new netgame", D(esp+0xc4)+0x64, D(esp+0xdc)+0xa);
-    ___12e78h_v3(___1a1108h___185c0bh, "Press ENTER when all players have arrived", D(esp+0xc4)+0x14, D(esp+0xdc)+0xda);
-    ___12e78h_v3(___1a1108h___185c0bh, "or press ESC to close your game.", D(esp+0xc4)+0x14, D(esp+0xdc)+0xea);
+    ___12e78h_v3(___1a1108h___185c0bh, DR_TXT_ALL_ARRIVED, D(esp+0xc4)+0x14, D(esp+0xdc)+0xda);
+    ___12e78h_v3(___1a1108h___185c0bh, DR_TXT_CLOSE_GAME, D(esp+0xc4)+0x14, D(esp+0xdc)+0xea);
 
     D(esp+0xd4) = D(esp+0xdc)+0x8d;
     D(esp+0xd0) = 0x280*D(esp+0xd4);

@@ -72,7 +72,7 @@ void ___1c178h(void){
 	eax = D(___1a1108h);
 	___12e78h_cdecl(eax, edx, ebx, ecx);
 	ecx = 0x2383f;
-	ebx = "Press ESC to abort";
+	ebx = DR_TXT_ABORT;
 	edx = ___185c0bh;
 	eax = D(___1a1108h);
 	___12e78h_cdecl(eax, edx, ebx, ecx);

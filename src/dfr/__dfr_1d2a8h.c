@@ -78,7 +78,7 @@ void ___1d2a8h(void){
 				___12e78h_cdecl(___1a1108h, (font_props_t *)___185c0bh, "Waiting for remote player...", D(esp)+0x280*(D(esp+4)+0xd)+0x28);
 				esi = D(esp+4)+0x13;
 				edi = D(esp)+0xf;
-				___12e78h_cdecl(___1a1108h, (font_props_t *)___185c0bh, "Press ESC to abort", 0x280*(D(esp+4)+0x1e)+D(esp)+0x28);
+				___12e78h_cdecl(___1a1108h, (font_props_t *)___185c0bh, DR_TXT_ABORT, 0x280*(D(esp+4)+0x1e)+D(esp)+0x28);
 				___12cb8h__VESA101_PRESENTSCREEN();
 				___60a84h();
 				ecx = 0;

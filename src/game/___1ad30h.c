@@ -15,7 +15,7 @@ void ___1ad30h(__DWORD__ A1, __DWORD__ A2, __DWORD__ A3){
 
 
     ___13248h_cdecl(A1, A2, 0x1c2, 0x10d, 1);
-    ___12e78h_v3(___1a110ch___185c0bh, "Looking for netgames, press enter to join...", A1+0x14, A2+0xd);
+    ___12e78h_v3(___1a110ch___185c0bh, DR_TXT_LOOKING_FOR_NETGAMES, A1+0x14, A2+0xd);
 
     n = -1;
     while(++n < 4){

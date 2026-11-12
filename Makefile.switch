@@ -14,7 +14,7 @@ ELF2NRO   := $(DEVKITPRO)/tools/bin/elf2nro
 
 APP_NAME    := dRally
 APP_AUTHOR  := VLPLAY Games
-APP_VERSION := 1.0.0
+APP_VERSION := 1.1.0
 APP_ICON    := assets/switch/icon.jpg
 
 BUILD := build/switch
