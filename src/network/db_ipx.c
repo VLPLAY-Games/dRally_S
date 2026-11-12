@@ -953,6 +953,23 @@ int ipx_connect(const char * addr, int port){
 }
 
 #ifdef IPXNET
+/* The end of the program: stop the client thread before its socket goes away, then close it. */
+void ipx_shutdown(void) {
+
+	if(incomingPacket.connected) {
+
+		IPX_ClientLoopRunning = 0;
+		SDL_Delay(30);
+		DisconnectFromServer(false);
+	}
+
+	if(SDLNetInited == 1){
+
+		SDLNet_Quit();
+		SDLNetInited = 0;
+	}
+}
+
 void ipx_disconnect(void) {
 
 	//PIC_RemoveEvents(IPX_AES_EventHandler);

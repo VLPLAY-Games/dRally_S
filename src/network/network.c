@@ -2,6 +2,7 @@
 #include "drally_ipx.h"
 #if defined(DR_SWITCH)
 #include "switch_config.h"
+#include "switch_net.h"
 #endif
 
 void handleIpxRequest(void);
@@ -30,6 +31,8 @@ __DWORD__ NovellNetWare_IPX_InstallationCheck(void){
         printf("[dRally.Network] no ipx_server in SWITCH.CFG\n");
         return 0;
     }
+
+    if(!SwitchNet_start()) return 0;
 
     return ipx_connect(SwitchConfig.ipx_server, SwitchConfig.ipx_port) ? 0xff : 0;
 #else
