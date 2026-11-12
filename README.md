@@ -1,5 +1,7 @@
 # dRally
 
+> **Nintendo Switch:** see [SWITCH.md](SWITCH.md) for the console port of this fork.
+
 The main goal of this project is to create a port of Death Rally (1996) running natively on Linux and BSD based operating systems.
 
 #### Linux requirements

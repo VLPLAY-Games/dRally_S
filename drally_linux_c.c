@@ -129,6 +129,56 @@ void __VESA101_SETMODE();
 void __DISPLAY_SET_PALETTE_COLOR(int b, int g, int r, int n);
 
 
+#if defined(DR_SWITCH)
+
+/* One texture is kept for the whole run and refilled each frame from the 8-bit picture and its
+   palette, instead of creating and destroying a texture 70 times a second. */
+static SDL_Texture * SW_Texture = NULL;
+static int SW_TextureW = 0, SW_TextureH = 0;
+static Uint32 SW_Pixels[640*480];
+
+void __PRESENTSCREEN__(void){
+
+	if(GX.ActiveMode){
+
+		const int w = GX.Surface->w;
+		const int h = GX.Surface->h;
+		const SDL_Palette * pal = GX.Surface->format->palette;
+		const Uint8 * src = (const Uint8 *)GX.Surface->pixels;
+		Uint32 lut[256];
+		int x, y;
+
+		for(x = 0; x < 256; x++){
+
+			const SDL_Color c = pal->colors[x];
+			lut[x] = 0xff000000u|((Uint32)c.r<<16)|((Uint32)c.g<<8)|c.b;
+		}
+
+		for(y = 0; y < h; y++){
+
+			Uint32 * dst = SW_Pixels+y*w;
+			const Uint8 * line = src+y*GX.Surface->pitch;
+
+			for(x = 0; x < w; x++) dst[x] = lut[line[x]];
+		}
+
+		if(!SW_Texture || SW_TextureW != w || SW_TextureH != h){
+
+			if(SW_Texture) SDL_DestroyTexture(SW_Texture);
+			SW_Texture = SDL_CreateTexture(GX.Renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, w, h);
+			SW_TextureW = w;
+			SW_TextureH = h;
+		}
+
+		SDL_UpdateTexture(SW_Texture, NULL, SW_Pixels, w*sizeof(Uint32));
+		SDL_RenderClear(GX.Renderer);
+		SDL_RenderCopy(GX.Renderer, SW_Texture, NULL, NULL);
+		SDL_RenderPresent(GX.Renderer);
+	}
+}
+
+#else
+
 void __PRESENTSCREEN__(void){
 
 	if(GX.ActiveMode){
@@ -140,6 +190,8 @@ void __PRESENTSCREEN__(void){
 		GX.Texture = NULL;
 	}
 }
+
+#endif // DR_SWITCH
 
 void __VGA13_PRESENTSCREEN__(void){
 
@@ -204,7 +256,11 @@ void dRally_Display_init(int mode){
 			SDL_WINDOWPOS_CENTERED,       						// initial y position
 			W_WIDTH,                  							// width, in pixels
 			W_HEIGHT,											// height, in pixels
+#if defined(DR_SWITCH)
+			SDL_WINDOW_HIDDEN|SDL_WINDOW_FULLSCREEN				// flags - see below
+#else
 			SDL_WINDOW_HIDDEN									// flags - see below
+#endif
 		);
 	}
 
@@ -212,7 +268,11 @@ void dRally_Display_init(int mode){
 
 		SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
 		GX.Renderer = SDL_CreateRenderer(GX.Window, -1, SDL_RENDERER_ACCELERATED);
-		//GX.Renderer = SDL_CreateRenderer(GX.Window, -1, SDL_RENDERER_SOFTWARE);
+		if(!GX.Renderer){
+
+			SDL_Log("Accelerated renderer failed (%s), using the software renderer", SDL_GetError());
+			GX.Renderer = SDL_CreateRenderer(GX.Window, -1, SDL_RENDERER_SOFTWARE);
+		}
 	}
 }
 
@@ -221,6 +281,10 @@ void dRally_Display_clean(void){
 	if(GX.VGA13.Surface) SDL_FreeSurface(GX.VGA13.Surface);
 	if(GX.VESA101.Surface) SDL_FreeSurface(GX.VESA101.Surface);
 	if(GX.Texture) SDL_DestroyTexture(GX.Texture);
+#if defined(DR_SWITCH)
+	if(SW_Texture) SDL_DestroyTexture(SW_Texture);
+	SW_Texture = NULL;
+#endif
 	if(GX.Renderer) SDL_DestroyRenderer(GX.Renderer);
 	if(GX.Window) SDL_DestroyWindow(GX.Window);
 }

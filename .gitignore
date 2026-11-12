@@ -15,3 +15,8 @@ z_regex*
 *_ok.c
 *.zip
 *_32b.c
+
+# Nintendo Switch build
+build/
+*.nro
+*.elf

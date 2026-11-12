@@ -128,7 +128,11 @@ void dRally_System_init(void){
 
     time_t 		tmt;
 
+#if defined(DR_SWITCH)
+	if(SDL_Init(SDL_INIT_VIDEO|SDL_INIT_JOYSTICK)){
+#else
 	if(SDL_Init(SDL_INIT_VIDEO)){
+#endif
 		
 		SDL_Log("Failed to init video subsystem: %s", SDL_GetError());
 	}

@@ -28,8 +28,41 @@ static void ___100dch(void){
 	exit(0x70);
 }
 
+#if defined(DR_SWITCH)
+
+#include <switch.h>
+#include <unistd.h>
+
+/* The game finds its files (ENGINE.BPA, CINEM/, DR.CFG ...) in the current directory. Run from
+   the folder the NRO was started from, as the Homebrew Menu reports it in argv[0], and keep a
+   log next to the data. */
+static void dRally_Switch_init(int argc, char * argv[]){
+
+	char dir[256] = "sdmc:/switch/dRally";
+
+	if((argc > 0) && argv[0] && (strncmp(argv[0], "sdmc:/", 6) == 0)){
+
+		char * slash;
+
+		strncpy(dir, argv[0], sizeof(dir)-1);
+		dir[sizeof(dir)-1] = 0;
+		slash = strrchr(dir, '/');
+		if(slash) *slash = 0;
+	}
+
+	chdir(dir);
+	freopen("log.txt", "w", stdout);
+	setvbuf(stdout, NULL, _IOLBF, 0);
+	printf("dRally for Nintendo Switch, running in %s\n", dir);
+}
+
+#endif // DR_SWITCH
+
 int main(int argc, char * argv[]){
 
+#if defined(DR_SWITCH)
+	dRally_Switch_init(argc, argv);
+#endif
 	dRally_System_init();
 #if defined(DR_LETTERBOX)
 	dRally_Display_init(W_LETTERBOX);

@@ -1,0 +1,57 @@
+# Nintendo Switch build of dRally (devkitPro: devkitA64, libnx, switch-sdl2).
+#
+#   make -f Makefile.switch            builds dRally.nro
+#   make -f Makefile.switch clean
+#
+# The Linux build is the plain Makefile; both share the object lists in objs.mk.
+
+DEVKITPRO ?= /opt/devkitpro
+TOOLCHAIN := $(DEVKITPRO)/devkitA64/bin/aarch64-none-elf-
+CC        := $(TOOLCHAIN)gcc
+PKGCONFIG := $(DEVKITPRO)/portlibs/switch/bin/aarch64-none-elf-pkg-config
+NACPTOOL  := $(DEVKITPRO)/tools/bin/nacptool
+ELF2NRO   := $(DEVKITPRO)/tools/bin/elf2nro
+
+APP_NAME    := dRally
+APP_AUTHOR  := VLPLAY Games
+APP_VERSION := 0.1.0
+APP_ICON    := assets/switch/icon.jpg
+
+BUILD := build/switch
+
+ARCH     := -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
+# The code was recovered from a 32-bit DOS program: keep the compiler from assuming
+# strict aliasing or non-wrapping signed arithmetic.
+CFLAGS   := -O2 -g -ffunction-sections -fno-strict-aliasing -fwrapv -w $(ARCH) \
+            $(shell $(PKGCONFIG) --cflags sdl2) -I$(DEVKITPRO)/libnx/include
+# DR_LETTERBOX: keep the 4:3 picture and scale it inside the 16:9 screen.
+# No DR_MULTIPLAYER / IPXNET: the IPX network play is not part of the Switch build.
+DEFINES  := -DDR_LETTERBOX -DDR_SWITCH
+LDFLAGS  := -specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(BUILD)/$(APP_NAME).map
+LIBS     := $(shell $(PKGCONFIG) --libs sdl2) -lm
+
+include objs.mk
+
+ALL_OBJS := switch_input.o $(UNI_OBJS) $(LINUX_OBJS) $(RACE_OBJS) $(MENU_OBJS) $(SHOP_OBJS) $(UNDERGROUND_OBJS) $(OBJS) $(MP_CMN_OBJS) $(MP_OBJS) $(DFR_OBJS)
+OBJ_PATHS := $(addprefix $(BUILD)/,$(ALL_OBJS))
+
+all: $(APP_NAME).nro
+
+$(BUILD)/%.o: %.c drally.h drally_keyboard.h switch_input.h Makefile.switch objs.mk
+	@mkdir -p $(BUILD)
+	$(CC) -c -o $@ $< $(CFLAGS) $(DEFINES)
+
+$(BUILD)/$(APP_NAME).elf: $(OBJ_PATHS)
+	$(CC) -o $@ $^ $(LDFLAGS) $(LIBS)
+
+$(BUILD)/$(APP_NAME).nacp:
+	@mkdir -p $(BUILD)
+	$(NACPTOOL) --create "$(APP_NAME)" "$(APP_AUTHOR)" "$(APP_VERSION)" $@
+
+$(APP_NAME).nro: $(BUILD)/$(APP_NAME).elf $(BUILD)/$(APP_NAME).nacp $(APP_ICON)
+	$(ELF2NRO) $< $@ --icon=$(APP_ICON) --nacp=$(BUILD)/$(APP_NAME).nacp
+
+clean:
+	@rm -rf $(BUILD) $(APP_NAME).nro
+
+.PHONY: all clean
