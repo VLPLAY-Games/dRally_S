@@ -9,6 +9,7 @@
 
 #define SOCKTABLESIZE	150 // DOS IPX driver was limited to 150 open sockets
 #define IPXBUFFERSIZE 	1424
+#define CONNECT_TIMEOUT_MS 3000	// how long to wait for the server to answer a registration
 
 #define CONVIPX(hostvar) hostvar[0], hostvar[1], hostvar[2], hostvar[3], hostvar[4], hostvar[5]
 
@@ -832,16 +833,25 @@ bool ConnectToServer(char const *strAddr) {
 				Bit32u ticks, elapsed;
 				ticks = SDL_GetTicks();
 
+				Bit32u resent = 0;
+
 				while(true) {
 
 					elapsed = SDL_GetTicks() - ticks;
 
-					if(elapsed > 1000){		// 5000
+					if(elapsed > CONNECT_TIMEOUT_MS){
 
-						printf("Timeout connecting to server at %s\n", strAddr);
+						printf("Timeout connecting to server at %s port %d\n", strAddr, (int)udpPort);
 						SDLNet_UDP_Close(ipxClientSocket);
 
 						return false;
+					}
+
+					/* UDP can lose the registration, especially over Wi-Fi: ask again every 700 ms */
+					if(elapsed >= (resent+1)*700){
+
+						resent++;
+						SDLNet_UDP_Send(ipxClientSocket, regPacket.channel, &regPacket);
 					}
 
 					result = SDLNet_UDP_Recv(ipxClientSocket, &regPacket);
