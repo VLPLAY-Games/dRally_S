@@ -24,8 +24,14 @@ static void ___10060h(void){
 static void ___100dch(void){
 
 	__VGA3_SETMODE();
+#if defined(DR_SWITCH)
+	/* closing the application from the HOME menu: a normal exit */
+	printf("dRally: closed by the system\n");
+	exit(0);
+#else
 	printf("DEATH RALLY Exit: CTRL+ALT+DEL pressed!\n");
 	exit(0x70);
+#endif // DR_SWITCH
 }
 
 #if defined(DR_SWITCH)
