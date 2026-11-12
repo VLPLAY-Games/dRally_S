@@ -12,6 +12,10 @@
 void SwitchText_begin(int max_chars);
 void SwitchText_end(void);
 
+/* Ask for a line of text with the keyboard, right now (the game waits). `initial` is shown in the box.
+   Returns 1 and the text in `out` when it was confirmed and is not empty, 0 when cancelled. */
+int SwitchText_prompt(const char * header, const char * guide, const char * initial, char * out, unsigned out_size);
+
 /* Open the keyboard again (the entry screen must be running). */
 void SwitchText_request(void);
 

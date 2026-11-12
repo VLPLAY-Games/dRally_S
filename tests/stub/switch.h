@@ -16,6 +16,7 @@ void swkbdConfigSetHeaderText(SwkbdConfig * c, const char * s);
 void swkbdConfigSetGuideText(SwkbdConfig * c, const char * s);
 void swkbdConfigSetStringLenMax(SwkbdConfig * c, int n);
 void swkbdConfigSetStringLenMin(SwkbdConfig * c, int n);
+void swkbdConfigSetInitialText(SwkbdConfig * c, const char * s);
 Result swkbdShow(SwkbdConfig * c, char * out, unsigned long size);
 void swkbdClose(SwkbdConfig * c);
 

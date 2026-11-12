@@ -91,6 +91,33 @@ static void show_keyboard(void){
     }
 }
 
+int SwitchText_prompt(const char * header, const char * guide, const char * initial, char * out, unsigned out_size){
+
+    SwkbdConfig kbd;
+    char text[256] = {0};
+
+    out[0] = 0;
+    SwitchTouch_ignoreFor(SDL_GetTicks(), 0);
+    if(R_FAILED(swkbdCreate(&kbd, 0))) return 0;
+    swkbdConfigMakePresetDefault(&kbd);
+    swkbdConfigSetHeaderText(&kbd, header);
+    swkbdConfigSetGuideText(&kbd, guide);
+    if(initial && initial[0]) swkbdConfigSetInitialText(&kbd, initial);
+    swkbdConfigSetStringLenMax(&kbd, (int)((out_size < sizeof(text)) ? out_size-1 : sizeof(text)-1));
+    swkbdConfigSetStringLenMin(&kbd, 0);
+    if(R_FAILED(swkbdShow(&kbd, text, sizeof(text))) || !text[0]){
+
+        swkbdClose(&kbd);
+        SwitchTouch_ignoreFor(SDL_GetTicks(), 400);
+        return 0;
+    }
+    swkbdClose(&kbd);
+    SwitchTouch_ignoreFor(SDL_GetTicks(), 400);
+
+    snprintf(out, out_size, "%s", text);
+    return 1;
+}
+
 void SwitchText_pump(void){
 
     if(!T.active) return;

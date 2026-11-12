@@ -101,7 +101,7 @@ The picture waits for the screen (vsync, no tearing) while the game keeps its ow
 The game plays over the network with the IPX protocol of old local networks. dRally sends the IPX packets inside UDP to one small server, which hands them on to the other players. Every player connects to the same server, which runs on a computer in your network (not on the console).
 
 1. **Start the server** on a computer in the same network: `python3 ipxnet/ipxnet.py 8888` (only Python 3 is needed; the port is the one the Switch uses by default). `ipxnet/ipxnet.c` is the same server in C and needs SDL2 and SDL2_net. Allow UDP port 8888 in the computer's firewall.
-2. **Tell the Switch where it is:** in `SWITCH.CFG` set `ipx_server` to the computer's address (for example `ipx_server = 192.168.1.20`) and, if you used another port, `ipx_port`. With `ipx_server` empty the network is off.
+2. **Tell the Switch where it is:** when you choose **Network connection** and have entered your name, the console's keyboard asks for the server's address (for example `192.168.1.20`); the last one is already in the box and is kept in `SWITCH.CFG` (`ipx_server`; `ipx_port` is the port, 8888 by default). Cancelling the keyboard leaves the network.
 3. **Play:** every player chooses **Multiplayer Race** in the main menu. The server prints a line for each player that connects, and `log.txt` has `[dRally.Network]` lines.
 
 Players on a PC use the Linux build of dRally, which connects to `localhost:8888` (the source says so in `src/network/network.c`) and so needs the server on the same computer or a change there. The Switch needs a Wi-Fi connection to the same network.

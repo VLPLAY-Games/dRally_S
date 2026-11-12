@@ -23,6 +23,8 @@ void swkbdConfigSetHeaderText(SwkbdConfig * c, const char * s){ (void)c; (void)s
 void swkbdConfigSetGuideText(SwkbdConfig * c, const char * s){ (void)c; (void)s; }
 void swkbdConfigSetStringLenMax(SwkbdConfig * c, int n){ c->max = n; }
 void swkbdConfigSetStringLenMin(SwkbdConfig * c, int n){ (void)c; (void)n; }
+const char * stub_initial_text = NULL;
+void swkbdConfigSetInitialText(SwkbdConfig * c, const char * s){ (void)c; stub_initial_text = s; }
 Result swkbdShow(SwkbdConfig * c, char * out, unsigned long size){
 
     (void)c;
@@ -101,6 +103,26 @@ int main(void){
     SwitchText_request();
     run(20);
     CHECK(stub_keyboard_shown == 3);
+
+    /* the prompt: a line of text from the keyboard right now, with the old value in the box */
+    {
+        char out[64];
+        const int shown = stub_keyboard_shown;
+
+        stub_keyboard_text = "192.168.1.20";
+        stub_initial_text = NULL;
+        CHECK(SwitchText_prompt("Server address", "guide", "10.0.0.5", out, sizeof(out)) == 1);
+        CHECK(strcmp(out, "192.168.1.20") == 0);
+        CHECK(stub_initial_text && strcmp(stub_initial_text, "10.0.0.5") == 0);
+        CHECK(stub_keyboard_shown == shown+1);
+
+        stub_keyboard_text = NULL;                      /* cancelled */
+        CHECK(SwitchText_prompt("Server address", "guide", "", out, sizeof(out)) == 0);
+        CHECK(out[0] == 0);
+
+        stub_keyboard_text = "";                        /* an empty line counts as cancelled */
+        CHECK(SwitchText_prompt("Server address", "guide", "", out, sizeof(out)) == 0);
+    }
 
     if(failures) printf("%d check(s) failed\n", failures);
     else printf("switch_text: all checks passed\n");

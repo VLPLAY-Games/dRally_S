@@ -963,6 +963,11 @@ int ipx_connect(const char * addr, int port){
 }
 
 #ifdef IPXNET
+int ipx_is_connected(void) {
+
+	return incomingPacket.connected ? 1 : 0;
+}
+
 /* The end of the program: stop the client thread before its socket goes away, then close it. */
 void ipx_shutdown(void) {
 

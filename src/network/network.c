@@ -3,6 +3,10 @@
 #if defined(DR_SWITCH)
 #include "switch_config.h"
 #include "switch_net.h"
+#include "switch_text.h"
+#include <string.h>
+#include <stdio.h>
+int ipx_is_connected(void);
 #endif
 
 void handleIpxRequest(void);
@@ -25,11 +29,23 @@ __DWORD__ NovellNetWare_IPX_InstallationCheck(void){
     printf("[dRally.Network] IPX_InstallationCheck\n");
 
 #if defined(DR_SWITCH)
-    /* the server named in SWITCH.CFG; without one there is no network */
-    if(!SwitchConfig.ipx_server[0]){
+    /* Ask for the server's address, with the one used last (SWITCH.CFG) in the box. Cancelling, or an
+       empty line, leaves the network. Not asked again once connected. */
+    if(!ipx_is_connected()){
 
-        printf("[dRally.Network] no ipx_server in SWITCH.CFG\n");
-        return 0;
+        char address[64];
+
+        if(!SwitchText_prompt("Server address", "Address of the computer that runs ipxnet, e.g. 192.168.1.20", SwitchConfig.ipx_server, address, sizeof(address))){
+
+            printf("[dRally.Network] no server address entered\n");
+            return 0;
+        }
+
+        if(strcmp(address, SwitchConfig.ipx_server) != 0){
+
+            snprintf(SwitchConfig.ipx_server, sizeof(SwitchConfig.ipx_server), "%s", address);
+            SwitchConfig_save("SWITCH.CFG");        /* the next time it is already there */
+        }
     }
 
     if(!SwitchNet_start()) return 0;
