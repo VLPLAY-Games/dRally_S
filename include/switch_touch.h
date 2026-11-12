@@ -22,6 +22,7 @@ enum { SWITCHTOUCH_SCREENS, SWITCHTOUCH_RACE };
 
 /* Where a touch on the window lands on the game's screen. nx, ny are 0..1 over the window; out_w,
    out_h the renderer's output size and lw, lh the game's logical size, which is centred in it. */
+void SwitchTouch_mapStretched(float nx, float ny, int lw, int lh, int * gx, int * gy);
 void SwitchTouch_mapToGame(float nx, float ny, int out_w, int out_h, int lw, int lh, int * gx, int * gy);
 
 /* Feed the current fingers and the time (ms); then pump the gestures. */

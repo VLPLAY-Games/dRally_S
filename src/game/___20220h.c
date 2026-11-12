@@ -41,7 +41,7 @@ static __DWORD__ InvalidConfiguration(void){
 	memcpy(___1a1124h__VESA101h_ScreenBufferA, ___1a112ch__VESA101_ACTIVESCREEN_PTR, 0x4b000);
 	___13248h_cdecl(0x1a, 0xc2 , 0x253, 0x56, 1);
 	___12e78h_v3(___1a10cch___185ba9h, msg, 322-___252e0h_cdecl(msg), 203);
-	___12e78h_v3(___1a10cch___185ba9h, "Press any key to re-enter.", 95, 235);
+	___12e78h_v3(___1a10cch___185ba9h, DR_TXT_REENTER, 95, 235);
 	___12cb8h__VESA101_PRESENTSCREEN();
 	dRally_Sound_pushEffect(1, SFX_BUMMER, 0, ___24cc54h_sfx_volume, 0x28000, 0x8000);
 	___5994ch();

@@ -91,7 +91,8 @@ void race___40164h(void){
 			/* the stick (and the tilt of the console) steer by how often the flag is on */
 			int left, right;
 
-			SwitchSteer_tick(&left, &right);
+			/* the stick points where the car should go, else the tilt (and a stick that turns) steer */
+			if(!SwitchSteer_tickHeading(s_35e[MY_CAR_IDX].Direction, &left, &right)) SwitchSteer_tick(&left, &right);
 			if(left) aFlags |= CTRL_STEER_LEFT;
 			if(right) aFlags |= CTRL_STEER_RIGHT;
 		}

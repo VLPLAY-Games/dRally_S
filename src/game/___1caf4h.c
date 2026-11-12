@@ -55,7 +55,7 @@ __DWORD__ ___1caf4h(void){
 			___13710h(2, 0);
 			___13248h_cdecl(0x1c, 0xc6, 0x253, 0x56, 1);
 			___12e78h_v3(___1a10cch___185ba9h, "Netware IPX-protocol not loaded!", 37, 208);
-			___12e78h_v3(___1a10cch___185ba9h, "Press any key to continue.", 97, 240);
+			___12e78h_v3(___1a10cch___185ba9h, DR_TXT_CONTINUE, 97, 240);
 			___12cb8h__VESA101_PRESENTSCREEN();
 			
 			___5994ch();

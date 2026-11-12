@@ -287,14 +287,14 @@ void ___3892ch_cdecl(__DWORD__ A1, __DWORD__ A2){
 			___38708h();
 			dRally_Sound_pushEffect(1, SFX_CLICK_4, 0, ___24cc54h_sfx_volume, 0x28000, 0x8000);
 			ecx = 0x46b6e;
-			___12e78h_cdecl(___1a1108h, (font_props_t *)___185c0bh, "Press any key to continue...", ecx);
+			___12e78h_cdecl(___1a1108h, (font_props_t *)___185c0bh, DR_TXT_CONTINUE_DOTS, ecx);
 			___12cb8h__VESA101_PRESENTSCREEN();
 		}
 
 		if(D(esp+0x64) == 1){
 		
 			ecx = 0x46b6e;
-			___12e78h_cdecl(___1a1108h, (font_props_t *)___185c0bh, "Press any key to continue...", 0x46b6e);
+			___12e78h_cdecl(___1a1108h, (font_props_t *)___185c0bh, DR_TXT_CONTINUE_DOTS, 0x46b6e);
 			___12cb8h__VESA101_PRESENTSCREEN();
 		}
 
@@ -311,7 +311,7 @@ void ___3892ch_cdecl(__DWORD__ A1, __DWORD__ A2){
 		___36adch();
 		___37ed4h_cdecl(0x14);
 		ebp = 0;
-		___12e78h_cdecl(___1a1108h, (font_props_t *)___185c0bh, "Press any key to continue...", 0x46b6e);
+		___12e78h_cdecl(___1a1108h, (font_props_t *)___185c0bh, DR_TXT_CONTINUE_DOTS, 0x46b6e);
 		___12cb8h__VESA101_PRESENTSCREEN();
 		___2b318h();
 

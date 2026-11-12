@@ -39,6 +39,10 @@ int main(void){
     int x, y, i;
 
     /* window to game coordinates: 1280x720 window, 640x480 picture in the middle (scale 1.5) */
+    SwitchTouch_mapStretched(0.5f, 0.5f, 640, 480, &x, &y);           /* widescreen: no bars, the whole window */
+    CHECK(x == 320 && y == 240);
+    SwitchTouch_mapStretched(0.0f, 0.999f, 320, 240, &x, &y);
+    CHECK(x == 0 && y == 239);
     SwitchTouch_mapToGame(0.5f, 0.5f, 1280, 720, 640, 480, &x, &y);
     CHECK(x == 320 && y == 240);
     SwitchTouch_mapToGame(160.0f/1280, 0.0f, 1280, 720, 640, 480, &x, &y);

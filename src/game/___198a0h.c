@@ -121,7 +121,7 @@ __DWORD__ ___198a0h(void){
         ___13710h(4, 0);
         ___13248h_cdecl(0x46, 0xc6, 0x1e2, 0x58, 1);
         ___12e78h_v3(___1a10cch___185ba9h, "All netgames are reserved!", 81, 208);
-        ___12e78h_v3(___1a10cch___185ba9h, "Press any key to continue.", 81, 240);
+        ___12e78h_v3(___1a10cch___185ba9h, DR_TXT_CONTINUE, 81, 240);
         ___12cb8h__VESA101_PRESENTSCREEN();
         ___5994ch();
         ___59b3ch();

@@ -11,6 +11,18 @@
 /* The left stick's horizontal position, -1 (left) to 1 (right). */
 void SwitchSteer_setStick(float x);
 
+/* The left stick's vertical position, -1 (up) to 1 (down). */
+void SwitchSteer_setStickY(float y);
+
+/* Direction steering (stick_mode 1): the stick points where the car should go on the screen. Given
+   the car's heading (the game's Direction, degrees), gives the flags for this frame. Returns 0 when
+   the stick is in its dead zone (nothing is asked), and then the flags are off. */
+int SwitchSteer_tickHeading(float car_direction, int * left, int * right);
+
+/* The game's Direction that makes the car head toward the screen vector (x right, y down), as the
+   car's picture is drawn (the track is squashed vertically to 5/6). */
+float SwitchSteer_directionFor(float x, float y);
+
 /* The accelerometer in G, in the console's frame (X to the right, Y toward the bottom edge,
    gravity's direction). Works out the tilt and keeps it. */
 void SwitchSteer_feedAccel(float ax, float ay, float az);

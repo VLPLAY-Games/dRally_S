@@ -5,6 +5,16 @@
     extern __POINTER__ CPY_GEN_MES_BPK;
     extern __BYTE__ ___1d7810h[];
 
+#if defined(DR_SWITCH)
+#define PRESS_CONTINUE  "      PRESS A TO CONTINUE       "
+#define PRESS_ABORT     "        PRESS A TO ABORT        "
+#define ABORT_PROMPT    "      Y-ABORT   A-CONTINUE      "
+#else
+#define PRESS_CONTINUE  "    PRESS ENTER TO CONTINUE     "
+#define PRESS_ABORT     "      PRESS ENTER TO ABORT      "
+#define ABORT_PROMPT    "             Y / N              "
+#endif
+
 static const char * MSG_GAME_PAUSED[9] = {
 	[0] = "                                ",
 	[1] = "                                ",
@@ -14,7 +24,7 @@ static const char * MSG_GAME_PAUSED[9] = {
 	[5] = "                                ",
 	[6] = "                                ",
 	[7] = "                                ",
-	[8] = "    PRESS ENTER TO CONTINUE     "
+	[8] = PRESS_CONTINUE
 };
 
 static const char * MSG_RACE_OVER[9] = {
@@ -26,7 +36,7 @@ static const char * MSG_RACE_OVER[9] = {
 	[5] = "                                ",
 	[6] = "                                ",
 	[7] = "                                ",
-	[8] = "    PRESS ENTER TO CONTINUE     "
+	[8] = PRESS_CONTINUE
 };
 
 static const char * MSG_ABOUT_TO_ABORT[9] = {
@@ -47,7 +57,7 @@ static const char * MSG_ABORT_RACE[9] = {
 	[2] = "                                ",
 	[3] = "      A B O R T   R A C E !     ",
 	[4] = "                                ",
-	[5] = "             Y / N              ",
+	[5] = ABORT_PROMPT,
 	[6] = "                                ",
 	[7] = "                                ",
 	[8] = "                                "
@@ -59,7 +69,7 @@ static const char * MSG_ABORT_DEMO[9] = {
 	[2] = "                                ",
 	[3] = "      A B O R T   D E M O !     ",
 	[4] = "                                ",
-	[5] = "             Y / N              ",
+	[5] = ABORT_PROMPT,
 	[6] = "                                ",
 	[7] = "                                ",
 	[8] = "                                "
@@ -74,19 +84,27 @@ static const char * MSG_CONNECTION_LOST[9] = {
 	[5] = "                                ",
 	[6] = "                                ",
 	[7] = "                                ",
-	[8] = "      PRESS ENTER TO ABORT      "
+	[8] = PRESS_ABORT
 };
 
 static const char * MSG_WELCOME[9] = {
 	[0] = "     WELCOME TO DEATH RALLY!    ",
 	[1] = "                                ",
+#if defined(DR_SWITCH)
+	[2] = " PRESS                          ",
+	[3] = "    PLUS-PAUSE                  ",
+	[4] = "    MINUS-ABORT RACE            ",
+	[5] = "   R3-TOGGLE STATUS BAR         ",
+	[6] = "   L3-GYRO STEERING ON/OFF      ",
+#else
 	[2] = " PRESS                          ",
 	[3] = "    F1-INFO SCREEN              ",
 	[4] = "     P-PAUSE                    ",
 	[5] = "   TAB-TOGGLE STATUS BAR        ",
 	[6] = "   ESC-ABORT RACE               ",
+#endif
 	[7] = "                                ",
-	[8] = "    PRESS ENTER TO CONTINUE     "
+	[8] = PRESS_CONTINUE
 };
 
 // GAME PAUSED BACKGROUND

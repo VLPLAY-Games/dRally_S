@@ -109,7 +109,7 @@ void ___36068h_cdecl(__DWORD__ A1){
 
 	if(A1 == 0){
 	
-		___12e78h_cdecl(___1a1108h, (font_props_t *)___185c0bh, "Press any key to continue...", 0x46b6e);
+		___12e78h_cdecl(___1a1108h, (font_props_t *)___185c0bh, DR_TXT_CONTINUE_DOTS, 0x46b6e);
 		___12cb8h__VESA101_PRESENTSCREEN();
 	}
 }

@@ -68,6 +68,12 @@ static void update_keys(void){
         stick_down = vertical && (SW.axis_y > 0);
     }
 
+    if(SW.race && SwitchConfig.analog_steering && SwitchConfig.stick_mode){
+
+        /* direction steering: the stick only points, ZR and ZL are the gas and the brake */
+        stick_left = stick_right = stick_up = stick_down = 0;
+    }
+
     left  = SW.button[SW_DLEFT]  || stick_left  || (SW.hat & SDL_HAT_LEFT);
     right = SW.button[SW_DRIGHT] || stick_right || (SW.hat & SDL_HAT_RIGHT);
     up    = SW.button[SW_DUP]    || stick_up    || (SW.hat & SDL_HAT_UP);
@@ -139,9 +145,14 @@ void SwitchInput_axis(int axis, int value){
 
     if(axis == 0){
 
+        if(SwitchConfig.stick_invert_x) value = (value == -32768) ? 32767 : -value;
         SW.axis_x = value;
         SwitchSteer_setStick(value/32767.0f);
     }
-    else if(axis == 1) SW.axis_y = value;
+    else if(axis == 1){
+
+        SW.axis_y = value;
+        SwitchSteer_setStickY(value/32767.0f);
+    }
     update_keys();
 }

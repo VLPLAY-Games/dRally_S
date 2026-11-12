@@ -4,6 +4,8 @@
 #include "drally_fonts.h"
 #if defined(DR_SWITCH)
 #include "switch_touch.h"
+#include "switch_config.h"
+void dRally_Display_applyConfig(void);
 #endif
 
 	extern __DWORD__ ___24cc58h_msx_volume;
@@ -146,6 +148,17 @@ static int helper_volume2(const char * label, int vol, void (*vol_cb)(int)){
 	return vol;
 }
 
+#if defined(DR_SWITCH)
+/* The two rows that were the PC joystick settings show the picture settings of the Switch build. */
+static void switch_picture_labels(void){
+
+	strcpy(___1866b8h+0x5dc, SwitchConfig.scaling ? "Smart Scaling: On" : "Smart Scaling: Off");
+	strcpy(___1866b8h+0x60e, SwitchConfig.widescreen ? "Screen Mode: 16:9" : "Screen Mode: 4:3");
+	B(___185b58h+3*9+3) = 1;
+	B(___185b58h+3*9+4) = 1;
+}
+#endif // DR_SWITCH
+
 // CONFIGURE
 void menu___218b4h(void){
 
@@ -158,6 +171,9 @@ void menu___218b4h(void){
 	while(1){
 
 		if(D(___196a84h) != 0) break;
+#if defined(DR_SWITCH)
+		switch_picture_labels();
+#endif // DR_SWITCH
 
 		memcpy(___1a112ch__VESA101_ACTIVESCREEN_PTR+0x280*84, ___1a1138h__VESA101_BACKGROUND+0x280*84, 0x280*283);
 		___13710h(0, 0);
@@ -177,12 +193,20 @@ void menu___218b4h(void){
 			menu___204fch();
 			break;
 		case 3:	// DEFINE GAMEPAD/JOYSTICK
-#if defined(DR_GAMEPAD)
+#if defined(DR_SWITCH)
+			SwitchConfig.scaling = !SwitchConfig.scaling;			// SMART SCALING
+			dRally_Display_applyConfig();
+			SwitchConfig_save("SWITCH.CFG");
+#elif defined(DR_GAMEPAD)
 			___210b4h();
 #endif // DR_GAMEPAD
 			break;
 		case 4: // GAMEPAD/JOYSTICK
-#if defined(DR_GAMEPAD)
+#if defined(DR_SWITCH)
+			SwitchConfig.widescreen = !SwitchConfig.widescreen;		// 16:9
+			dRally_Display_applyConfig();
+			SwitchConfig_save("SWITCH.CFG");
+#elif defined(DR_GAMEPAD)
 			___19bd58h_gamepad = !___19bd58h_gamepad;
 
 			if(___19bd58h_gamepad == 1){

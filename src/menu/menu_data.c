@@ -32,7 +32,7 @@ __BYTE__ ___185b58h[9][9] = {
 /*1*/   { 1,0,0,1,0,1,0,0,0 },
 /*2*/   { 0,0,1,1,1,1,1,1,0 },
 #if defined(DR_SWITCH)
-/*3*/   { 1,1,1,1,0,1,0,0,0 },	// no "Gamepad/Joystick" switch: the console buttons are always on
+/*3*/   { 1,1,1,1,1,1,0,0,0 },	// rows 3 and 4 are the picture settings of the Switch build
 #else
 /*3*/   { 1,1,1,1,1,1,0,0,0 },
 #endif // DR_SWITCH
@@ -85,8 +85,16 @@ char ___1866b8h[9][9][50] = {
         /*0*/   "Music Volume",
         /*1*/   "Effect Volume",
         /*2*/   "Define Keyboard",
+#if defined(DR_SWITCH)
+        /*3*/   "Smart Scaling: Off",
+#else
         /*3*/   "Define Gamepad/Joystick",
+#endif // DR_SWITCH
+#if defined(DR_SWITCH)
+        /*4*/   "Screen Mode: 4:3",
+#else
         /*4*/   "Gamepad Disabled",
+#endif // DR_SWITCH
         /*5*/   "Previous Menu",
         /*6*/   0,
         /*7*/   0,

@@ -30,6 +30,13 @@ static struct {
     int         two_tap_pending;
 } T = {0};
 
+/* the picture stretched over the whole window: no bars, each way scaled on its own */
+void SwitchTouch_mapStretched(float nx, float ny, int lw, int lh, int * gx, int * gy){
+
+    *gx = (int)(nx*lw);
+    *gy = (int)(ny*lh);
+}
+
 void SwitchTouch_mapToGame(float nx, float ny, int out_w, int out_h, int lw, int lh, int * gx, int * gy){
 
     float scale, view_w, view_h, ox, oy;

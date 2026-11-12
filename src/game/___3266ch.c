@@ -292,7 +292,7 @@ void ___3266ch(void){
 					
 				___13248h_cdecl(33, 200, 580, 112, 1);
 				___12e78h_v3(___1a10cch___185ba9h, "You did not sign up in any race.", 48, 225);
-				___12e78h_v3(___1a1108h___185c0bh, "Press any key to continue.", 208, 261);
+				___12e78h_v3(___1a1108h___185c0bh, DR_TXT_CONTINUE, 208, 261);
 				___12cb8h__VESA101_PRESENTSCREEN();
 				dRally_Sound_pushEffect(1, SFX_LAUGHTER, 0, ___24cc54h_sfx_volume, 0x25500-0x1000, 0x8000);
 

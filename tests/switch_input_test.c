@@ -80,6 +80,8 @@ int main(void){
     /* in a race with fine steering the stick does not press Left and Right: SwitchSteer takes its
        position; the D-pad still does, and the stick only accelerates or brakes when pushed clearly */
     SwitchConfig_defaults();
+    SwitchConfig.stick_mode = 0;
+    SwitchConfig.stick_invert_x = 0;                    /* (the default is on: the first console test steered the wrong way) */
     {
         const int lefts = makes[SDL_SCANCODE_LEFT], ups = makes[SDL_SCANCODE_UP], downs = makes[SDL_SCANCODE_DOWN];
 
@@ -104,6 +106,29 @@ int main(void){
         CHECK(makes[SDL_SCANCODE_LEFT] == lefts+2);
         SwitchInput_axis(0, 0);
         SwitchConfig.analog_steering = 1;
+
+        SwitchConfig.stick_invert_x = 1;                /* swapped: pushed left steers right */
+        SwitchInput_axis(0, -30000);
+        CHECK(SwitchSteer_value() > 0.5f);
+        SwitchInput_axis(0, 30000);
+        CHECK(SwitchSteer_value() < -0.5f);
+        SwitchInput_axis(0, -32768);                    /* the extreme value does not overflow */
+        CHECK(SwitchSteer_value() > 0.5f);
+        SwitchInput_axis(0, 0);
+        SwitchConfig.stick_invert_x = 0;
+    }
+
+    /* direction steering: the stick presses no arrows at all in a race (the D-pad still does) */
+    {
+        const int lefts = makes[SDL_SCANCODE_LEFT], ups = makes[SDL_SCANCODE_UP], downs = makes[SDL_SCANCODE_DOWN];
+
+        SwitchConfig.stick_mode = 1;
+        SwitchInput_axis(0, -30000); SwitchInput_axis(0, 0);
+        SwitchInput_axis(1, -30000); SwitchInput_axis(1, 30000); SwitchInput_axis(1, 0);
+        CHECK(makes[SDL_SCANCODE_LEFT] == lefts && makes[SDL_SCANCODE_UP] == ups && makes[SDL_SCANCODE_DOWN] == downs);
+        SwitchInput_button(DLEFT, 1); SwitchInput_button(DLEFT, 0);
+        CHECK(makes[SDL_SCANCODE_LEFT] == lefts+1);
+        SwitchConfig.stick_mode = 0;
     }
 
     /* the left stick click in a race switches gyro steering (with a short vibration each time) */

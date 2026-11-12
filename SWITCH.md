@@ -8,6 +8,10 @@ A port of [dRally](https://github.com/BSzili/dRally), an open source engine for 
 > [!NOTE]
 > **Status: first build, not tested on a console yet.** It builds and links, and the controller mapping is covered by a host test, but nobody has run it on hardware. Please report what works and what does not (see [Reporting problems](#reporting-problems)).
 
+## Prompts
+
+Prompts that named a key ("press any key", "press Enter") name the controller button here ("Press A button to continue"); the pause and race-over messages and the first-race help show Switch buttons, and the abort-race question is answered with **Y** (abort) or **A** (continue).
+
 ## Requirements
 
 - A Nintendo Switch with custom firmware that runs homebrew (for example Atmosphère) and the Homebrew Menu.
@@ -46,7 +50,7 @@ The controller works as the keyboard the game was written for. The game steers, 
 | Controller | In the menus | In a race |
 | --- | --- | --- |
 | D-pad | Move | Steer (on or off); up accelerates, down brakes |
-| Left stick | Move | Fine steering; pushed clearly up or down it accelerates or brakes |
+| Left stick | Move | Points where the car should go (`stick_mode = 1`), or turns it left and right (`stick_mode = 0`) |
 | Left stick click | (on a name screen: the keyboard) | Gyro steering on or off |
 | ZR | | Accelerate |
 | ZL | | Brake |
@@ -66,7 +70,8 @@ In a race the game ends the race the moment Escape is pressed and pauses on P, s
 
 The game itself only knows steer left, steer right (on or off, once per frame). The port adds:
 
-- **Fine steering with the left stick** (on by default): how far the stick is pushed decides how often the steering flag is on; half way is every second frame, full is every frame. The D-pad is still on or off. In a race the stick only accelerates or brakes when it is pushed clearly up or down (not when steering diagonally). Set `analog_steering = 0` in `SWITCH.CFG` for the old behaviour.
+- **Direction steering with the left stick** (on by default, `stick_mode = 1`): in a race the stick points where the car should go *on the screen*: stick up and the car turns until it heads up the screen, stick right and it heads right, and so on, by the shortest way round. The further the car is from the wanted heading, the more often it steers (small corrections steer only some frames). The stick does not accelerate or brake: gas and brake stay on **ZR** and **ZL**. In the dead zone it asks for nothing. Set `stick_mode = 0` for the classic behaviour below.
+- **Fine steering with the left stick** (`stick_mode = 0`): how far the stick is pushed decides how often the steering flag is on; half way is every second frame, full is every frame. The D-pad is still on or off. In a race the stick only accelerates or brakes when it is pushed clearly up or down (not when steering diagonally). Set `analog_steering = 0` in `SWITCH.CFG` for the old behaviour.
 - **Steering by tilting the console** (handheld mode, off by default): turn the console like a wheel. Switch it on in `SWITCH.CFG` (`gyro = 1`) or in a race by clicking the **left stick** (a short vibration confirms); the position of the console at that moment is straight. It adds to the stick. `gyro_range` is the tilt for full steering, `gyro_deadzone` the tilt that does nothing.
 
 ### Vibration
@@ -84,10 +89,14 @@ The picture waits for the screen (vsync, no tearing) while the game keeps its ow
 | Setting | Default | Meaning |
 | --- | --- | --- |
 | `vsync` | 1 | the picture waits for the screen |
+| `widescreen` | 0 | 1: stretch the picture over the whole 16:9 screen (also in the game's Configure menu, "Screen Mode") |
+| `scaling` | 0 | 0: smooth. 1: smart, whole-number enlargement first (sharp pixels), then fitted to the screen (also in the Configure menu, "Smart Scaling") |
 | `rumble`, `rumble_percent` | 1, 100 | vibration in races and how strong |
 | `analog_steering` | 1 | fine steering with the left stick |
 | `stick_deadzone` | 15 | percent of the stick's travel that does nothing |
 | `gyro` | 0 | steering by tilting the console |
+| `stick_mode` | 1 | 1: the stick points where the car should go on the screen; 0: it turns the car left and right |
+| `stick_invert_x` | 0 | 1 swaps left and right of the left stick |
 | `gyro_range`, `gyro_deadzone` | 25, 3 | degrees for full steering, degrees that do nothing |
 
 ### Touch screen

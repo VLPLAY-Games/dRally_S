@@ -251,9 +251,16 @@ void race___478c8h(__DWORD__ A1){
         }
 
 		___59cd8h();
+#if defined(DR_SWITCH)
+		/* the Y button is the horn (Space) in a race and has no letter Y: here it says "yes" */
+		if((kmap[DR_SCAN_ENTER] != 0)||(kmap[DR_SCAN_KP_ENTER] != 0)||(kmap[DR_SCAN_Y] != 0)||(kmap[DR_SCAN_N] != 0)||(kmap[DR_SCAN_SPACE] != 0)) n = 0x1;
+		if(kmap[DR_SCAN_F1] != 0) j = n = 0x1;
+		if((D(___243d14h) == -1)&&((kmap[DR_SCAN_Y] == 1)||(kmap[DR_SCAN_SPACE] == 1))) D(___243d14h) = 0x1;
+#else
 		if((kmap[DR_SCAN_ENTER] != 0)||(kmap[DR_SCAN_KP_ENTER] != 0)||(kmap[DR_SCAN_Y] != 0)||(kmap[DR_SCAN_N] != 0)) n = 0x1;
 		if(kmap[DR_SCAN_F1] != 0) j = n = 0x1;
 		if((D(___243d14h) == -1)&&(kmap[DR_SCAN_Y] == 1)) D(___243d14h) = 0x1;
+#endif // DR_SWITCH
 
 		resetCounter(2);
 		resetCounter(5);

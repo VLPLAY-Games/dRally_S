@@ -23,6 +23,7 @@ int main(void){
     unsigned low, high, ms;
 
     SwitchConfig_defaults();
+    SwitchConfig.stick_mode = 0;                    /* the stick turns left and right (see the heading tests below) */
     SwitchSteer_reset();
 
     /* nothing pressed: no steering */
@@ -110,6 +111,70 @@ int main(void){
         CHECK(SwitchRumble_shape(SWITCHRUMBLE_MINE_DROP, 0, 100, &low2, &high2, &ms2) && low2 == 0 && ms2 == 40);
         CHECK(SwitchRumble_shape(SWITCHRUMBLE_MINE_BLAST, 0x9000, 100, &low2, &high2, &ms2) && ms2 > 150);
         CHECK(!SwitchRumble_shape(SWITCHRUMBLE_NONE, 0x10000, 100, &low2, &high2, &ms2));
+    }
+
+    /* direction steering: the stick points where the car should go on the screen */
+    {
+        int dl, dr, handled;
+
+        SwitchConfig_defaults();
+        SwitchConfig.stick_mode = 1;
+        SwitchSteer_reset();
+        SwitchSteer_setGyroEnabled(0);
+
+        /* the game's Direction for the screen directions: 0 is up, it grows toward the left */
+        CHECK(fabsf(SwitchSteer_directionFor(0.0f, -1.0f)) < 0.01f);                       /* up */
+        CHECK(fabsf(SwitchSteer_directionFor(-1.0f, 0.0f)-90.0f) < 0.01f);                 /* left */
+        CHECK(fabsf(fabsf(SwitchSteer_directionFor(0.0f, 1.0f))-180.0f) < 0.01f);          /* down */
+        CHECK(fabsf(SwitchSteer_directionFor(1.0f, 0.0f)+90.0f) < 0.01f);                  /* right */
+
+        /* the stick in its dead zone asks for nothing */
+        SwitchSteer_setStick(0.1f); SwitchSteer_setStickY(-0.1f);
+        handled = SwitchSteer_tickHeading(0.0f, &dl, &dr);
+        CHECK(!handled && !dl && !dr);
+
+        /* car heading up, stick right: turn right on every frame (the error is large) */
+        SwitchSteer_setStick(1.0f); SwitchSteer_setStickY(0.0f);
+        dl = dr = 0;
+        for(l = 0; l < 20; l++){ int a, b; SwitchSteer_tickHeading(0.0f, &a, &b); dl += a; dr += b; }
+        CHECK(dr == 20 && dl == 0);
+
+        /* car heading up, stick left: turn left */
+        SwitchSteer_setStick(-1.0f);
+        dl = dr = 0;
+        for(l = 0; l < 20; l++){ int a, b; SwitchSteer_tickHeading(0.0f, &a, &b); dl += a; dr += b; }
+        CHECK(dl == 20 && dr == 0);
+
+        /* car heading left (90), stick up: turn right, the short way */
+        SwitchSteer_setStick(0.0f); SwitchSteer_setStickY(-1.0f);
+        dl = dr = 0;
+        for(l = 0; l < 20; l++){ int a, b; SwitchSteer_tickHeading(90.0f, &a, &b); dl += a; dr += b; }
+        CHECK(dr == 20 && dl == 0);
+
+        /* the shortest way across the 0/360 line: car at 350, stick up: turn right; car at 10: turn left */
+        dl = dr = 0;
+        for(l = 0; l < 20; l++){ int a, b; SwitchSteer_tickHeading(330.0f, &a, &b); dl += a; dr += b; }
+        CHECK(dl == 20 && dr == 0);                     /* 330 is 30 degrees to the left of up: a larger Direction is a left turn */
+        dl = dr = 0;
+        for(l = 0; l < 20; l++){ int a, b; SwitchSteer_tickHeading(30.0f, &a, &b); dl += a; dr += b; }
+        CHECK(dr == 20 && dl == 0);
+
+        /* heading as asked (within the dead band): no steering, but it is handled */
+        handled = SwitchSteer_tickHeading(1.0f, &dl, &dr);
+        CHECK(handled && !dl && !dr);
+
+        /* a small error steers only some of the frames */
+        dl = dr = 0;
+        for(l = 0; l < 40; l++){ int a, b; SwitchSteer_tickHeading(10.0f, &a, &b); dl += a; dr += b; }
+        CHECK(dl == 0 && dr > 5 && dr < 35);
+
+        /* in this mode a stick pushed sideways does not turn by itself (SwitchSteer_value) */
+        SwitchSteer_setStick(1.0f); SwitchSteer_setStickY(0.0f);
+        CHECK(SwitchSteer_value() == 0.0f);
+
+        /* with analog steering off nothing is handled here */
+        SwitchConfig.analog_steering = 0;
+        CHECK(!SwitchSteer_tickHeading(0.0f, &dl, &dr));
     }
 
     if(failures) printf("%d check(s) failed\n", failures);

@@ -226,7 +226,7 @@ void shop___28e40h(void){
 				}
 
 				___12e78h_v3(___1a110ch___185c0bh, strcpy(esp, "Use arrows to change the color"), 170, 124);
-				___12e78h_v3(___1a110ch___185c0bh, strcpy(esp, "of your car and press Enter"), 170, 140);
+				___12e78h_v3(___1a110ch___185c0bh, strcpy(esp, DR_TXT_CAR_COLOR_ENTER), 170, 140);
 				___12e78h_v3(___1a110ch___185c0bh, strcpy(esp, "when finished."), 170, 156);
 				___12cb8h__VESA101_PRESENTSCREEN();
 

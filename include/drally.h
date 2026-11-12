@@ -195,4 +195,17 @@ void switch_b(__POINTER__, __POINTER__);
 #define ___1a1134h          NUM_OF_LAPS
 #define ___185a54h          MP_MONEY
 
+/* On-screen prompts that name a key: the Switch port names the controller button instead. */
+#if defined(DR_SWITCH)
+#define DR_TXT_CONTINUE             "Press A button to continue."
+#define DR_TXT_CONTINUE_DOTS        "Press A button to continue..."
+#define DR_TXT_REENTER              "Press A button to re-enter."
+#define DR_TXT_CAR_COLOR_ENTER      "of your car and press A"
+#else
+#define DR_TXT_CONTINUE             "Press any key to continue."
+#define DR_TXT_CONTINUE_DOTS        "Press any key to continue..."
+#define DR_TXT_REENTER              "Press any key to re-enter."
+#define DR_TXT_CAR_COLOR_ENTER      "of your car and press Enter"
+#endif
+
 #endif // __DRALLY_H

@@ -43,6 +43,31 @@ int main(void){
         remove(path);
     }
 
+    /* saving writes the template with the current values; loading it again gives the same settings */
+    {
+        const char * path = "/tmp/switch_config_save_test.cfg";
+        FILE * f;
+        char text[4096] = {0};
+
+        SwitchConfig_defaults();
+        SwitchConfig.scaling = 1;
+        SwitchConfig.widescreen = 1;
+        SwitchConfig.gyro_range = 40;
+        SwitchConfig_save(path);
+
+        f = fopen(path, "rb");
+        CHECK(f != NULL);
+        if(f){ fread(text, 1, sizeof(text)-1, f); fclose(f); }
+        CHECK(strstr(text, "scaling = 1") != NULL && strstr(text, "widescreen = 1") != NULL);
+        CHECK(strstr(text, "# Picture scaling") != NULL);               /* the explanations stay */
+
+        SwitchConfig_defaults();
+        SwitchConfig_load(path);
+        CHECK(SwitchConfig.scaling == 1 && SwitchConfig.widescreen == 1 && SwitchConfig.gyro_range == 40);
+        CHECK(SwitchConfig.vsync == 1 && SwitchConfig.stick_invert_x == 0);
+        remove(path);
+    }
+
     if(failures) printf("%d check(s) failed\n", failures);
     else printf("switch_config: all checks passed\n");
     return failures != 0;

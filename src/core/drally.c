@@ -65,9 +65,9 @@ static void dRally_Switch_init(int argc, char * argv[]){
 	printf("dRally for Nintendo Switch, running in %s\n", dir);
 
 	SwitchConfig_load("SWITCH.CFG");
-	printf("Settings: vsync %d, rumble %d (%d%%), analog steering %d (dead zone %d%%), gyro %d (range %d, dead zone %d degrees)\n",
-		SwitchConfig.vsync, SwitchConfig.rumble, SwitchConfig.rumble_percent, SwitchConfig.analog_steering,
-		SwitchConfig.stick_deadzone, SwitchConfig.gyro, SwitchConfig.gyro_range, SwitchConfig.gyro_deadzone);
+	printf("Settings: vsync %d, scaling %d, widescreen %d, rumble %d (%d%%), analog steering %d (dead zone %d%%, invert %d), gyro %d (range %d, dead zone %d degrees)\n",
+		SwitchConfig.vsync, SwitchConfig.scaling, SwitchConfig.widescreen, SwitchConfig.rumble, SwitchConfig.rumble_percent, SwitchConfig.analog_steering,
+		SwitchConfig.stick_deadzone, SwitchConfig.stick_invert_x, SwitchConfig.gyro, SwitchConfig.gyro_range, SwitchConfig.gyro_deadzone);
 
 	/* All the game files at once, before anything else starts: a list of what is wrong is more
 	   use than a program that just closes. */

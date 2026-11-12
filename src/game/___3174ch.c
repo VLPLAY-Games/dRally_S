@@ -46,7 +46,7 @@ void ___3174ch_cdecl(__DWORD__ A1){
 	VESA101_16X16_FORMAT_PRINT(___190bd8h[A1][3], 60, 244);
 	VESA101_16X16_FORMAT_PRINT(___190bd8h[A1][4], 60, 260);
 
-	___12e78h_cdecl(___1a1108h, (font_props_t *)___185c0bh, "Press any key to continue.", 0x2e250);
+	___12e78h_cdecl(___1a1108h, (font_props_t *)___185c0bh, DR_TXT_CONTINUE, 0x2e250);
 	___12cb8h__VESA101_PRESENTSCREEN();
 	dRally_Sound_pushEffect(0x1, SFX_LAUGHTER, 0, ___24cc54h_sfx_volume, 0x25500-0x1000, 0x8000);
 

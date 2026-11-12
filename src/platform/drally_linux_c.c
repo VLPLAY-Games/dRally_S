@@ -178,6 +178,42 @@ static SDL_Texture * SW_Texture = NULL;
 static int SW_TextureW = 0, SW_TextureH = 0;
 static Uint32 SW_Pixels[640*480];
 
+/* Smart scaling: the picture is enlarged by a whole number with nearest-neighbour (every pixel
+   stays a sharp block), into a bigger texture that the renderer then fits to the screen with
+   bilinear filtering. Only the edges between blocks are smoothed. */
+static SDL_Texture * SW_Target = NULL;
+static int SW_TargetW = 0, SW_TargetH = 0;
+
+static void sw_make_textures(int w, int h){
+
+	const int smart = SwitchConfig.scaling == 1;
+	int ow = 1280, oh = 720, k = 1;
+
+	if(SW_Texture) SDL_DestroyTexture(SW_Texture);
+	if(SW_Target) SDL_DestroyTexture(SW_Target);
+	SW_Target = NULL;
+
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, smart ? "0" : "2");
+	SW_Texture = SDL_CreateTexture(GX.Renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, w, h);
+	SW_TextureW = w;
+	SW_TextureH = h;
+
+	if(smart){
+
+		if(GX.Renderer) SDL_GetRendererOutputSize(GX.Renderer, &ow, &oh);
+		k = (oh+h-1)/h;					/* the smallest whole number that is not smaller than the screen */
+		if(k < 1) k = 1;
+		while((k > 1) && ((k*w > 4096) || (k*h > 4096))) k--;
+
+		SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+		SW_Target = SDL_CreateTexture(GX.Renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, k*w, k*h);
+		SW_TargetW = k*w;
+		SW_TargetH = k*h;
+		printf("[dRally.DISPLAY] smart scaling %dx%d x%d -> %dx%d %s\n", w, h, k, ow, oh, SW_Target ? "on" : "unavailable, using plain scaling");
+	}
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
+}
+
 void __PRESENTSCREEN__(void){
 
 	if(GX.ActiveMode){
@@ -205,15 +241,22 @@ void __PRESENTSCREEN__(void){
 
 		if(!SW_Texture || SW_TextureW != w || SW_TextureH != h){
 
-			if(SW_Texture) SDL_DestroyTexture(SW_Texture);
-			SW_Texture = SDL_CreateTexture(GX.Renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, w, h);
-			SW_TextureW = w;
-			SW_TextureH = h;
+			sw_make_textures(w, h);
 		}
 
 		SDL_UpdateTexture(SW_Texture, NULL, SW_Pixels, w*sizeof(Uint32));
-		SDL_RenderClear(GX.Renderer);
-		SDL_RenderCopy(GX.Renderer, SW_Texture, NULL, NULL);
+		if(SW_Target && (SDL_SetRenderTarget(GX.Renderer, SW_Target) == 0)){
+
+			SDL_RenderCopy(GX.Renderer, SW_Texture, NULL, NULL);
+			SDL_SetRenderTarget(GX.Renderer, NULL);
+			SDL_RenderClear(GX.Renderer);
+			SDL_RenderCopy(GX.Renderer, SW_Target, NULL, NULL);
+		}
+		else {
+
+			SDL_RenderClear(GX.Renderer);
+			SDL_RenderCopy(GX.Renderer, SW_Texture, NULL, NULL);
+		}
 		SDL_RenderPresent(GX.Renderer);
 	}
 }
@@ -342,9 +385,34 @@ void dRally_Display_mapTouch(float nx, float ny, int * gx, int * gy){
 	const int lw = (GX.ActiveMode == VGA13) ? 320 : 640;
 	const int lh = (GX.ActiveMode == VGA13) ? 240 : 480;
 
+	if(SwitchConfig.widescreen){
+
+		SwitchTouch_mapStretched(nx, ny, lw, lh, gx, gy);
+		return;
+	}
+
 	if(GX.Renderer) SDL_GetRendererOutputSize(GX.Renderer, &ow, &oh);
 	SwitchTouch_mapToGame(nx, ny, ow, oh, lw, lh, gx, gy);
 }
+
+/* The logical size of the picture: its own size (4:3 with bars, whole-number friendly), or none at
+   all with widescreen, so the picture fills the 16:9 screen. */
+static void DR_SetLogical(int w, int h){
+
+	if(SwitchConfig.widescreen) SDL_RenderSetLogicalSize(GX.Renderer, 0, 0);
+	else SDL_RenderSetLogicalSize(GX.Renderer, w, h);
+}
+
+/* After scaling or widescreen was changed in the settings menu. */
+void dRally_Display_applyConfig(void){
+
+	if(GX.Renderer && GX.ActiveMode) DR_SetLogical((GX.ActiveMode == VGA13) ? 320 : 640, (GX.ActiveMode == VGA13) ? 240 : 480);
+	SW_TextureW = SW_TextureH = 0;						/* the textures are made again */
+}
+
+#else
+
+#define DR_SetLogical(w, h) SDL_RenderSetLogicalSize(GX.Renderer, w, h)
 
 #endif // DR_SWITCH
 
@@ -355,7 +423,9 @@ void dRally_Display_clean(void){
 	if(GX.Texture) SDL_DestroyTexture(GX.Texture);
 #if defined(DR_SWITCH)
 	if(SW_Texture) SDL_DestroyTexture(SW_Texture);
+	if(SW_Target) SDL_DestroyTexture(SW_Target);
 	SW_Texture = NULL;
+	SW_Target = NULL;
 #endif
 	if(GX.Renderer) SDL_DestroyRenderer(GX.Renderer);
 	if(GX.Window) SDL_DestroyWindow(GX.Window);
@@ -373,7 +443,7 @@ void __VGA13_SETMODE(void){
 		switch(GX.WindowMode){
 		case W_LETTERBOX:
 			memset(VGA13_ACTIVESCREEN_2, 0, 320*240);
-			SDL_RenderSetLogicalSize(GX.Renderer, 320, 240);
+			DR_SetLogical(320, 240);
 			break;
 		case W_SHRINK:
 		default:
@@ -397,7 +467,7 @@ void __VESA101_SETMODE(void){
 
 		switch(GX.WindowMode){
 		case W_LETTERBOX:
-			SDL_RenderSetLogicalSize(GX.Renderer, 640, 480);
+			DR_SetLogical(640, 480);
 			break;
 		case W_SHRINK:
 		default:

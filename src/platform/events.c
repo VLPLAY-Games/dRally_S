@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "drally.h"
 
 extern void_cb ___2432c8h;
@@ -27,7 +28,7 @@ static void switch_open_joysticks(void){
 
 static void switch_handle_event(const SDL_Event * e){
 
-    static int logged = 0;
+    static int logged = 0, axis_logged = 0;
 
     switch(e->type){
     case SDL_JOYBUTTONDOWN:
@@ -44,6 +45,12 @@ static void switch_handle_event(const SDL_Event * e){
         SwitchInput_hat(e->jhat.value);
         break;
     case SDL_JOYAXISMOTION:
+        /* the first strong deflections of the left stick are logged: which way is negative */
+        if((e->jaxis.axis < 2) && (abs(e->jaxis.value) > 20000) && (axis_logged < 40)){
+
+            axis_logged++;
+            printf("[dRally.INPUT] joystick axis %d value %d\n", e->jaxis.axis, e->jaxis.value);
+        }
         SwitchInput_axis(e->jaxis.axis, e->jaxis.value);
         break;
     case SDL_JOYDEVICEADDED:
