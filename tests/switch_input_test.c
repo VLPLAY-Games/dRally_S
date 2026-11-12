@@ -3,11 +3,15 @@
 #include <string.h>
 #include "SDL.h"
 #include "switch_input.h"
+#include "switch_rumble.h"
+#include "switch_steer.h"
+#include "switch_config.h"
 
 static int makes[SDL_NUM_SCANCODES], breaks[SDL_NUM_SCANCODES];
 static int failures = 0;
 
-static int keyboard_requests = 0;
+static int keyboard_requests = 0, blips = 0;
+void SwitchRumble_event(int kind, int strength){ (void)strength; if(kind == SWITCHRUMBLE_BLIP) blips++; }
 void SwitchText_request(void){ keyboard_requests++; }
 void dRally_Keyboard_make(SDL_Scancode sc){ makes[sc]++; }
 void dRally_Keyboard_break(SDL_Scancode sc){ breaks[sc]++; }
@@ -73,6 +77,48 @@ int main(void){
     }
     SwitchInput_button(RSTICK, 1); CHECK(makes[SDL_SCANCODE_TAB] == 1);
     SwitchInput_button(RSTICK, 0);
+    /* in a race with fine steering the stick does not press Left and Right: SwitchSteer takes its
+       position; the D-pad still does, and the stick only accelerates or brakes when pushed clearly */
+    SwitchConfig_defaults();
+    {
+        const int lefts = makes[SDL_SCANCODE_LEFT], ups = makes[SDL_SCANCODE_UP], downs = makes[SDL_SCANCODE_DOWN];
+
+        SwitchInput_axis(0, -30000);                    /* stick left */
+        CHECK(makes[SDL_SCANCODE_LEFT] == lefts);
+        CHECK(SwitchSteer_value() < -0.5f);
+        SwitchInput_axis(0, 0);
+        SwitchInput_button(DLEFT, 1); SwitchInput_button(DLEFT, 0);
+        CHECK(makes[SDL_SCANCODE_LEFT] == lefts+1);     /* the D-pad is digital */
+
+        SwitchInput_axis(1, -20000); SwitchInput_axis(0, 20000);       /* up and right, diagonal */
+        CHECK(makes[SDL_SCANCODE_UP] == ups);           /* does not accelerate by accident */
+        SwitchInput_axis(0, 0);
+        SwitchInput_axis(1, -30000);                    /* clearly up */
+        CHECK(makes[SDL_SCANCODE_UP] == ups+1);
+        SwitchInput_axis(1, 30000);                     /* clearly down */
+        CHECK(makes[SDL_SCANCODE_DOWN] == downs+1);
+        SwitchInput_axis(1, 0);
+
+        SwitchConfig.analog_steering = 0;               /* fine steering off: the stick is digital again */
+        SwitchInput_axis(0, -30000);
+        CHECK(makes[SDL_SCANCODE_LEFT] == lefts+2);
+        SwitchInput_axis(0, 0);
+        SwitchConfig.analog_steering = 1;
+    }
+
+    /* the left stick click in a race switches gyro steering (with a short vibration each time) */
+    {
+        const int b = blips;
+
+        SwitchInput_button(LSTICK, 1); SwitchInput_button(LSTICK, 0);
+        CHECK(SwitchSteer_gyroEnabled() == 1);
+        CHECK(blips == b+2);
+        SwitchInput_button(LSTICK, 1); SwitchInput_button(LSTICK, 0);
+        CHECK(SwitchSteer_gyroEnabled() == 0);
+        CHECK(blips == b+3);
+    }
+    CHECK(keyboard_requests == 1);                      /* not counted as a keyboard request in a race */
+
     SwitchInput_setRace(0);
     SwitchInput_button(PLUS, 1); SwitchInput_button(PLUS, 0);
     CHECK(makes[SDL_SCANCODE_P] == 1);                                  /* no pause key on the screens */

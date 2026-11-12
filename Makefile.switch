@@ -35,12 +35,12 @@ include objs.mk
 # Sources live in src/ (see the layout in README.md).
 vpath %.c $(shell find src -type d)
 
-ALL_OBJS := switch_input.o switch_audio.o switch_text.o switch_keys.o switch_touch.o switch_touch_hid.o $(UNI_OBJS) $(LINUX_OBJS) $(RACE_OBJS) $(MENU_OBJS) $(SHOP_OBJS) $(UNDERGROUND_OBJS) $(OBJS) $(MP_CMN_OBJS) $(MP_OBJS) $(DFR_OBJS)
+ALL_OBJS := switch_input.o switch_audio.o switch_text.o switch_keys.o switch_touch.o switch_touch_hid.o switch_error.o datacheck.o switch_config.o frame_clock.o switch_steer.o switch_rumble.o switch_gyro.o $(UNI_OBJS) $(LINUX_OBJS) $(RACE_OBJS) $(MENU_OBJS) $(SHOP_OBJS) $(UNDERGROUND_OBJS) $(OBJS) $(MP_CMN_OBJS) $(MP_OBJS) $(DFR_OBJS)
 OBJ_PATHS := $(addprefix $(BUILD)/,$(ALL_OBJS))
 
 all: $(APP_NAME).nro
 
-$(BUILD)/%.o: %.c include/drally.h include/drally_keyboard.h include/switch_input.h include/switch_audio.h include/switch_text.h include/switch_keys.h include/switch_touch.h Makefile.switch objs.mk
+$(BUILD)/%.o: %.c include/drally.h include/drally_keyboard.h include/switch_input.h include/switch_audio.h include/switch_text.h include/switch_keys.h include/switch_touch.h include/switch_error.h include/datacheck.h include/switch_config.h include/frame_clock.h include/switch_steer.h include/switch_rumble.h include/switch_gyro.h Makefile.switch objs.mk
 	@mkdir -p $(BUILD)
 	$(CC) -c -o $@ $< $(CFLAGS) $(DEFINES)
 

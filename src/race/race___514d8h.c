@@ -2,6 +2,9 @@
 #include "drally_structs_free.h"
 #include "drmath.h"
 #include "sfx.h"
+#if defined(DR_SWITCH)
+#include "switch_rumble.h"
+#endif // DR_SWITCH
 
 	extern __BYTE__ ___243c60h[];
 	extern __BYTE__ ___1e6ed0h[];
@@ -98,6 +101,9 @@ void race___514d8h(void){
 									else {
 
 										dRally_Sound_pushEffect(4, SFX_MINE, 0, 0x9000, 0x21000, 0x8000);	// DROPPING MINE
+#if defined(DR_SWITCH)
+										SwitchRumble_event(SWITCHRUMBLE_MINE_DROP, 0);
+#endif // DR_SWITCH
 									}
 
 									edx = getCounter(6);
@@ -184,11 +190,17 @@ void race___514d8h(void){
 							if((int)ecx > 0x1000){
 
 								dRally_Sound_pushEffect(4, SFX_MINE_EXPLOSION, 0, ecx, 0x21000, 0x8000);	// MINE EXPLOSION
+#if defined(DR_SWITCH)
+								SwitchRumble_event(SWITCHRUMBLE_MINE_BLAST, (int)ecx/2);	// someone else's mine: the nearer, the stronger
+#endif // DR_SWITCH
 							}
 						}
 						else {
 
 							dRally_Sound_pushEffect(4, SFX_MINE_EXPLOSION, 0, 0x9000, 0x21000, 0x8000);	// MINE EXPLOSION
+#if defined(DR_SWITCH)
+							SwitchRumble_event(SWITCHRUMBLE_MINE_BLAST, 0xc000);
+#endif // DR_SWITCH
 						}
 					}
 				}

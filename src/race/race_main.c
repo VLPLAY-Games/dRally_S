@@ -217,6 +217,9 @@ static void race___4ff50h_helper(int n){ D(___243c60h) = n; race___4ff50h(); }
 #if defined(DR_SWITCH)
 #include "switch_touch.h"
 #include "switch_input.h"
+#include "switch_config.h"
+#include "switch_steer.h"
+#include "switch_rumble.h"
 /* In a race the touch screen only pauses (a tap with two fingers); it never steers. */
 #define race_main race_main_body
 #endif // DR_SWITCH
@@ -424,6 +427,9 @@ void race_main(int MyIndex, int NumCars){		// my_position_index, number_of_racer
 
 					if((s_35e[MY_CAR_IDX].__18 != 0)||(s_35e[MY_CAR_IDX].__1c != 0)){
 
+#if defined(DR_SWITCH)
+						SwitchRumble_event(SWITCHRUMBLE_IMPACT, (int)D(___2438cch));
+#endif // DR_SWITCH
 						switch((int)getCounter(3)%3){
 						case 0:
 							dRally_Sound_pushEffect(5, SFX_CAR_HIT_1, 0, D(___2438cch), 0x21000, 0x8000);
@@ -852,8 +858,11 @@ void race_main(int MyIndex, int NumCars){
 
 	SwitchTouch_setMode(SWITCHTOUCH_RACE);
 	SwitchInput_setRace(1);
+	SwitchSteer_reset();
+	SwitchSteer_setGyroEnabled(SwitchConfig.gyro);		/* the position of the console now is straight */
 	race_main_body(MyIndex, NumCars);
 	SwitchInput_setRace(0);
+	SwitchSteer_setGyroEnabled(0);
 	SwitchTouch_setMode(SWITCHTOUCH_SCREENS);
 }
 #endif // DR_SWITCH

@@ -59,6 +59,10 @@ static __BYTE__ todo_in(__WORD__ w){
 	return 0;
 }
 
+#if defined(DR_SWITCH)
+#include "switch_steer.h"
+#endif // DR_SWITCH
+
 void race___40164h(void){
 
 	__DWORD__ 		aFlags;
@@ -82,6 +86,16 @@ void race___40164h(void){
 		if(kmap[___1a1140h.brake]||kmap[DR_SCAN_DOWN]||kmap[DR_SCAN_KP_2]) aFlags |= CTRL_BRAKE;
 		if(kmap[___1a1140h.steer_left]) aFlags |= CTRL_STEER_LEFT;
 		if(kmap[___1a1140h.steer_right]) aFlags |= CTRL_STEER_RIGHT;
+#if defined(DR_SWITCH)
+		{
+			/* the stick (and the tilt of the console) steer by how often the flag is on */
+			int left, right;
+
+			SwitchSteer_tick(&left, &right);
+			if(left) aFlags |= CTRL_STEER_LEFT;
+			if(right) aFlags |= CTRL_STEER_RIGHT;
+		}
+#endif // DR_SWITCH
 		if(kmap[___1a1140h.turbo_boost]) aFlags |= CTRL_TURBO_BOOST;		// TURBO BOOST
 		if(kmap[___1a1140h.machine_gun]) aFlags |= CTRL_MACHINE_GUN;		// MACHINE GUN
 		if(kmap[___1a1140h.drop_mine]){

@@ -61,8 +61,17 @@ void old_bpa_read(const char * bpa_fname, __POINTER__ dst, const char * bpa_entr
     }
 }
 
+#if defined(DR_SWITCH)
+#include "switch_error.h"
+#endif // DR_SWITCH
+
 void ___42944h(const char * err){
 
+#if defined(DR_SWITCH)
+	/* a game file is damaged or missing: say so on the screen instead of just closing */
+	SwitchError_fatal(err);
+	exit(0);
+#endif // DR_SWITCH
 	__VGA3_SETMODE();
 	printf("DEATH RALLY Error: %s\n", err);
 	printf("Please consult DRHELP.EXE for more information on how to resolve this problem.\n");

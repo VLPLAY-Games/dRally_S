@@ -38,6 +38,9 @@ static void ___100dch(void){
 
 #include <switch.h>
 #include <unistd.h>
+#include "datacheck.h"
+#include "switch_config.h"
+#include "switch_error.h"
 
 /* The game finds its files (ENGINE.BPA, CINEM/, DR.CFG ...) in the current directory. Run from
    the folder the NRO was started from, as the Homebrew Menu reports it in argv[0], and keep a
@@ -60,6 +63,28 @@ static void dRally_Switch_init(int argc, char * argv[]){
 	freopen("log.txt", "w", stdout);
 	setvbuf(stdout, NULL, _IOLBF, 0);
 	printf("dRally for Nintendo Switch, running in %s\n", dir);
+
+	SwitchConfig_load("SWITCH.CFG");
+	printf("Settings: vsync %d, rumble %d (%d%%), analog steering %d (dead zone %d%%), gyro %d (range %d, dead zone %d degrees)\n",
+		SwitchConfig.vsync, SwitchConfig.rumble, SwitchConfig.rumble_percent, SwitchConfig.analog_steering,
+		SwitchConfig.stick_deadzone, SwitchConfig.gyro, SwitchConfig.gyro_range, SwitchConfig.gyro_deadzone);
+
+	/* All the game files at once, before anything else starts: a list of what is wrong is more
+	   use than a program that just closes. */
+	{
+		char report[2048], text[3072];
+
+		if(DataCheck_scan(".", report, sizeof(report)) > 0){
+
+			printf("Game files:\n%s", report);
+			snprintf(text, sizeof(text),
+				"The Death Rally game files in\n  %s\nare not complete or not the original ones:\n\n%s\n"
+				"Copy the files of your Death Rally installation (the Windows version, game version 1.1)\n"
+				"into that folder; the list of files is in SWITCH.md.", dir, report);
+			SwitchError_show("The game files are not right.", text);
+			exit(0);
+		}
+	}
 }
 
 #endif // DR_SWITCH

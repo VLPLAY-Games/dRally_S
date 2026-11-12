@@ -35,7 +35,9 @@ sdmc:/switch/dRally/
 2. Copy the game files from your Death Rally installation into the same folder. The names must be in upper case, and the `.HAF` and `.IDF` files go into `CINEM/`. `CDROM.INI` is a one-line text file holding `./CINEM`.
 3. Start **dRally** from the Homebrew Menu.
 
-The game keeps its settings (`DR.CFG`) and a `log.txt` in the same folder. `log.txt` is the file to attach to a bug report.
+The game keeps its settings (`DR.CFG`), the settings of this port (`SWITCH.CFG`, written the first time) and a `log.txt` in the same folder. `log.txt` is the file to attach to a bug report.
+
+If a game file is missing or is not the original one, the game does not start; a text screen lists what is wrong (for example `MENU.BPA: not found`) and waits for a button. The game checks the exact size of each file, as the original does, so the files must be those of Death Rally 1.1.
 
 ## Controls
 
@@ -43,7 +45,9 @@ The controller works as the keyboard the game was written for. The game steers, 
 
 | Controller | In the menus | In a race |
 | --- | --- | --- |
-| D-pad, left stick | Move | Steer; up accelerates, down brakes |
+| D-pad | Move | Steer (on or off); up accelerates, down brakes |
+| Left stick | Move | Fine steering; pushed clearly up or down it accelerates or brakes |
+| Left stick click | (on a name screen: the keyboard) | Gyro steering on or off |
 | ZR | | Accelerate |
 | ZL | | Brake |
 | R | | Machine gun |
@@ -57,6 +61,34 @@ The controller works as the keyboard the game was written for. The game steers, 
 | Right stick click | | Switch the view (Tab) |
 
 In a race the game ends the race the moment Escape is pressed and pauses on P, so **+ pauses and - leaves**, and B does nothing there. The game controls can still be changed in its own options menu. The first 200 controller button presses are written to `log.txt` (`[dRally.INPUT]`), which helps to check the mapping.
+
+### Steering
+
+The game itself only knows steer left, steer right (on or off, once per frame). The port adds:
+
+- **Fine steering with the left stick** (on by default): how far the stick is pushed decides how often the steering flag is on; half way is every second frame, full is every frame. The D-pad is still on or off. In a race the stick only accelerates or brakes when it is pushed clearly up or down (not when steering diagonally). Set `analog_steering = 0` in `SWITCH.CFG` for the old behaviour.
+- **Steering by tilting the console** (handheld mode, off by default): turn the console like a wheel. Switch it on in `SWITCH.CFG` (`gyro = 1`) or in a race by clicking the **left stick** (a short vibration confirms); the position of the console at that moment is straight. It adds to the stick. `gyro_range` is the tilt for full steering, `gyro_deadzone` the tilt that does nothing.
+
+### Vibration
+
+In a race the controller vibrates when your car hits something (harder for a harder hit), when you drop a mine and when a mine goes off (nearer is stronger). `rumble` and `rumble_percent` in `SWITCH.CFG` switch it off or change how strong it is.
+
+### Picture timing
+
+The picture waits for the screen (vsync, no tearing) while the game keeps its own clock of 70 frames a second. If the game runs too slowly or stutters, set `vsync = 0` in `SWITCH.CFG`. `log.txt` says whether vsync is on (`[dRally.DISPLAY]`).
+
+### Settings file
+
+`SWITCH.CFG` is a text file with one `name = value` per line, explained in the file itself:
+
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `vsync` | 1 | the picture waits for the screen |
+| `rumble`, `rumble_percent` | 1, 100 | vibration in races and how strong |
+| `analog_steering` | 1 | fine steering with the left stick |
+| `stick_deadzone` | 15 | percent of the stick's travel that does nothing |
+| `gyro` | 0 | steering by tilting the console |
+| `gyro_range`, `gyro_deadzone` | 25, 3 | degrees for full steering, degrees that do nothing |
 
 ### Touch screen
 
@@ -83,7 +115,7 @@ Sound goes through the console's audio renderer (`audren`), at the sample rate t
 - Network play (IPX) is not part of the Switch build.
 - The game's own text entry only knows capitals, digits and a few signs, so other characters from the on-screen keyboard are dropped.
 - The menu entries for the PC joystick (Define Gamepad/Joystick, Gamepad/Joystick) and "Multiplayer Race" are switched off on the Switch: the console controller is always active and the network play is not in the build.
-- Not tested on hardware yet: sound, the on-screen keyboard and the controller mapping have only been tested as far as is possible on a PC (see `tests/`).
+- Not tested on hardware yet: sound, the on-screen keyboard, the controller mapping, vibration, fine steering and the tilt of the console have only been tested as far as is possible on a PC (see `tests/`). The direction of the tilt (clockwise is right) and the strength of the vibration are the first things to check.
 
 ## Building
 
@@ -129,7 +161,11 @@ The sources used to sit in one folder; they are now sorted (the Linux and Switch
 - `src/menu/menu_data.c`, `menu_main.c`: "Exit Game" instead of "Exit To DOS", switched-off entries, a hint line for the console.
 - `src/platform/drally_linux_c.c`: also a limit on how many frames the game catches up after the HOME menu or the system keyboard.
 - `src/platform/drally_linux_c.c`: the picture is converted once per frame into one texture kept for the whole run, a fullscreen window, and a software renderer fallback.
-- `src/core/drally.c`: start in the folder of the NRO and write `log.txt`.
+- `src/core/drally.c`: start in the folder of the NRO, write `log.txt`, read `SWITCH.CFG` and check the game files (`src/core/datacheck.c`) before anything else; `src/platform/switch/switch_error.c` shows the text screen.
+- `src/platform/switch/switch_config.c`: the settings file.
+- `src/core/frame_clock.c` and `src/platform/drally_linux_c.c`: vsync with a steady 70 frames a second (a clock that keeps the remainder), and the retrace waits are skipped when the picture waits for the screen.
+- `src/platform/switch/switch_steer.c`, `switch_gyro.c`: fine steering (the stick's position as how often the flag is on) and the tilt of the console; `race___40164h.c` adds them to the game's own steering flags.
+- `src/platform/switch/switch_rumble.c`: vibration, called from the race code for the player's car (`race_main.c`, `race___514d8h.c`).
 
 All Switch code is under `DR_SWITCH`; the Linux build behaves as before.
 

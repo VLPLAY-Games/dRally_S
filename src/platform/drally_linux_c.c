@@ -55,6 +55,40 @@ static void IRQ0_TimerISR(void){
 }
 
 int skip;
+
+#if defined(DR_SWITCH)
+
+#include "frame_clock.h"
+#include "switch_config.h"
+
+/* 1 when the picture waits for the screen (vsync). The retrace waits below are then not needed:
+   presenting is the wait. */
+static int DR_VSYNC = 0;
+static FrameClock SW_Clock;
+
+unsigned int __GET_FRAME_COUNTER(void){
+
+	const unsigned rate = (___60458h != 0) ? ___60458h : 70;
+	const unsigned frame_us = 1000000u/rate;
+	const Uint64 now_us = SDL_GetPerformanceCounter()*1000000ULL/SDL_GetPerformanceFrequency();
+	const int frames = FrameClock_advance(&SW_Clock, now_us, frame_us, 7);
+
+	if(frames > 0){
+
+		/* frames the game missed are counted at once, as the original timer interrupt did */
+		skip = frames-1;
+		INT8_FRAME_COUNTER += skip;
+		IRQ0_TimerISR();
+	}
+	else if((FrameClock_remaining(&SW_Clock, now_us, frame_us) > 3000)) SDL_Delay(1);
+
+	IO_Loop();
+
+	return INT8_FRAME_COUNTER;
+}
+
+#else
+
 unsigned int __GET_FRAME_COUNTER(void){
 
 	unsigned int NewTicks;
@@ -69,12 +103,6 @@ unsigned int __GET_FRAME_COUNTER(void){
 		Ticks = SDL_GetTicks();
 
 		skip = NewTicks/FrameMs - 1;
-#if defined(DR_SWITCH)
-		/* After the HOME menu, sleep or the system keyboard the clock has jumped; the game must
-		   not catch up on seconds of frames (its timers would jump too). */
-		if(skip > 6) skip = 6;
-#endif // DR_SWITCH
-
 		INT8_FRAME_COUNTER += skip;
 		IRQ0_TimerISR();
 
@@ -86,8 +114,13 @@ unsigned int __GET_FRAME_COUNTER(void){
 	return INT8_FRAME_COUNTER;
 }
 
+#endif // DR_SWITCH
+
 void __VRETRACE_WAIT_FOR_START(void){
 	
+#if defined(DR_SWITCH)
+	if(DR_VSYNC) return;	// presenting waits for the screen already
+#endif
 	unsigned int FrameMs = 1000/___60458h;// - 1;
 
 	VRetraceTicks = SDL_GetTicks();
@@ -103,6 +136,9 @@ void __VRETRACE_WAIT_IF_INACTIVE(void){
 	unsigned int FrameMs = 1000/___60458h;//1000/70;
 
 	IO_Loop();
+#if defined(DR_SWITCH)
+	if(DR_VSYNC) return;	// presenting waits for the screen already
+#endif
 
 	VRetraceTicks = SDL_GetTicks();
 	VRetraceTicks %= FrameMs;
@@ -272,12 +308,25 @@ void dRally_Display_init(int mode){
 	if(!GX.Renderer){
 
 		SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
+#if defined(DR_SWITCH)
+		/* vsync: the picture waits for the screen; the game's own clock keeps 70 frames a second */
+		if(SwitchConfig.vsync) GX.Renderer = SDL_CreateRenderer(GX.Window, -1, SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
+		if(!GX.Renderer)
+#endif
 		GX.Renderer = SDL_CreateRenderer(GX.Window, -1, SDL_RENDERER_ACCELERATED);
 		if(!GX.Renderer){
 
 			SDL_Log("Accelerated renderer failed (%s), using the software renderer", SDL_GetError());
 			GX.Renderer = SDL_CreateRenderer(GX.Window, -1, SDL_RENDERER_SOFTWARE);
 		}
+#if defined(DR_SWITCH)
+		{
+			SDL_RendererInfo info;
+
+			DR_VSYNC = GX.Renderer && (SDL_GetRendererInfo(GX.Renderer, &info) == 0) && (info.flags&SDL_RENDERER_PRESENTVSYNC);
+			printf("[dRally.DISPLAY] vsync %s\n", DR_VSYNC ? "on" : "off");
+		}
+#endif
 	}
 }
 
