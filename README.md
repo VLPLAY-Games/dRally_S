@@ -24,7 +24,7 @@
 
 ## Status
 
-The game is playable from the menus to the races, with sound, vibration and touch control in the menus. This is the 1.1.0 line of the Switch port; the `master` branch has the last release. The `switch` branch is used for testing, and `upstream-master` keeps the state of the repository before the port.
+The game is playable from the menus to the races, with sound, vibration and touch control in the menus. This is the 1.1.0 release line of the Switch port, on the `master` branch. The `switch` branch is used for testing, and `upstream-master` keeps the state of the repository before the port.
 
 | Area | State |
 | --- | --- |
