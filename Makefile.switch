@@ -14,7 +14,7 @@ ELF2NRO   := $(DEVKITPRO)/tools/bin/elf2nro
 
 APP_NAME    := dRally
 APP_AUTHOR  := VLPLAY Games
-APP_VERSION := 1.1.0
+APP_VERSION := 1.2.0
 APP_ICON    := assets/switch/icon.jpg
 
 BUILD := build/switch
@@ -48,7 +48,7 @@ $(BUILD)/%.o: %.c include/drally.h include/drally_keyboard.h include/switch_inpu
 $(BUILD)/$(APP_NAME).elf: $(OBJ_PATHS)
 	$(CC) -o $@ $^ $(LDFLAGS) $(LIBS)
 
-$(BUILD)/$(APP_NAME).nacp:
+$(BUILD)/$(APP_NAME).nacp: Makefile.switch
 	@mkdir -p $(BUILD)
 	$(NACPTOOL) --create "$(APP_NAME)" "$(APP_AUTHOR)" "$(APP_VERSION)" $@
 

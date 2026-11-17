@@ -6,7 +6,7 @@ A port of [dRally](https://github.com/BSzili/dRally), an open source engine for 
 > This repository contains **no Death Rally game data**. You need your own copy of the **1996 game** (version 1.1, the DOS release, for example from the original CD) and you copy its files to your own console. The 2012 remake sold on Steam is a different game and does not work.
 
 > [!NOTE]
-> **Status: 1.1.0.** Tested on a console in handheld mode (menus, races, steering, vibration, 16:9). Not tested yet: docked mode, touch in the 16:9 mode and other controllers. Please report what works and what does not (see [Reporting problems](#reporting-problems)). The README has the short version of installing and playing; this file has the details.
+> **Status: 1.2.0.** Tested in handheld mode (menus, races, steering, vibration and 16:9), including two-player split-screen with external controllers on Switch Lite. See [Reporting problems](#reporting-problems).
 
 ## Requirements
 
