@@ -12,7 +12,11 @@ typedef struct menubox_s {
 } menubox_t;
 
 menubox_t ___185a5ch[9] = {
+#if defined(DR_SWITCH)
+/*0*/   { 8, 0x91, 0x68, 0x1c, 0x15d,  0xfa, 0 },
+#else
 /*0*/   { 7, 0x91, 0x7c, 0x1c, 0x15d,  0xde, 0 },
+#endif
 /*1*/   { 6, 0x6d, 0xab, 0x1c, 0x1a5,  0xc0, 0 },
 /*2*/   { 8, 0x67, 0x76, 0x1c, 0x1af,  0xfa, 2 },
 /*3*/   { 6, 0x5f, 0x92, 0x1c, 0x1e5,  0xc0, 0 },
@@ -24,7 +28,11 @@ menubox_t ___185a5ch[9] = {
 };
 
 __BYTE__ ___185b58h[9][9] = {
+#if defined(DR_SWITCH)
+/*0*/   { 1,1,1,1,1,1,1,1,0 },
+#else
 /*0*/   { 1,1,1,1,1,1,1,0,0 },
+#endif
 /*1*/   { 1,0,0,1,0,1,0,0,0 },
 /*2*/   { 0,0,1,1,1,1,1,1,0 },
 #if defined(DR_SWITCH)
@@ -48,11 +56,12 @@ char ___1866b8h[9][9][50] = {
         /*4*/   "Credits",
         /*5*/   "Show Preview",
 #if defined(DR_SWITCH)
-        /*6*/   "Exit Game",
+        /*6*/   "Local Split-Screen",
+        /*7*/   "Exit Game",
 #else
         /*6*/   "Exit To DOS",
-#endif // DR_SWITCH
         /*7*/   0,
+#endif // DR_SWITCH
         /*8*/   0
     },
     {//  1

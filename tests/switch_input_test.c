@@ -21,6 +21,65 @@ void dRally_Keyboard_break(SDL_Scancode sc){ breaks[sc]++; }
 /* libnx button numbers, as the SDL2 Switch joystick driver reports them */
 enum { A, B, X, Y, LSTICK, RSTICK, L, R, ZL, ZR, PLUS, MINUS, DLEFT, DUP, DRIGHT, DDOWN, SLEFT, SUP, SRIGHT, SDOWN };
 
+struct SDL_Joystick {
+    SDL_JoystickID id;
+    int attached;
+    short x;
+    unsigned char button[32];
+};
+static SDL_Joystick pads[] = { {11, 1}, {22, 1}, {44, 1}, {77, 1}, {88, 1} };
+
+SDL_Joystick *SDL_JoystickFromInstanceID(SDL_JoystickID id){
+    for(unsigned i = 0; i < sizeof(pads)/sizeof(*pads); ++i)
+        if(pads[i].id == id && pads[i].attached) return &pads[i];
+    return NULL;
+}
+int SDL_JoystickGetAttached(SDL_Joystick *pad){ return pad->attached; }
+short SDL_JoystickGetAxis(SDL_Joystick *pad, int axis){ return axis == 0 ? pad->x : 0; }
+int SDL_JoystickNumHats(SDL_Joystick *pad){ (void)pad; return 0; }
+unsigned char SDL_JoystickGetHat(SDL_Joystick *pad, int hat){ (void)pad; (void)hat; return 0; }
+unsigned char SDL_JoystickGetButton(SDL_Joystick *pad, int button){ return pad->button[button]; }
+
+static void test_local_players(void){
+    SwitchLocal_openLobby();
+    CHECK(SwitchLocal_lobbyButton(44, A, 1));
+    CHECK(SwitchLocal_lobbyButton(44, A, 1));
+    CHECK(SwitchLocal_joined() == 1);
+    CHECK(SwitchLocal_begin() == 0);
+    CHECK(SwitchLocal_lobbyButton(11, A, 1));
+    CHECK(SwitchLocal_lobbyButton(22, A, 1));
+    CHECK(SwitchLocal_lobbyButton(77, A, 1));
+    CHECK(SwitchLocal_lobbyButton(88, A, 1));
+    CHECK(SwitchLocal_begin() == 4);
+    CHECK(SwitchLocal_acceptMenuInput(44) && !SwitchLocal_acceptMenuInput(11));
+    SwitchConfig.stick_invert_x = 0;
+    pads[2].button[ZR] = 1;
+    pads[0].x = -20000;
+    pads[1].button[ZL] = 1;
+    pads[3].button[X] = 1;
+    CHECK(SwitchLocal_controls(0, 0.0f) == SWITCH_RACE_GAS);
+    CHECK(SwitchLocal_controls(1, 0.0f) == SWITCH_RACE_LEFT);
+    SwitchConfig.analog_steering = 1;
+    SwitchConfig.stick_mode = 1;
+    pads[2].x = pads[0].x;
+    CHECK(SwitchLocal_controls(0, 180.0f) == (SWITCH_RACE_GAS | SWITCH_RACE_RIGHT));
+    CHECK(SwitchLocal_controls(1, 0.0f) == SWITCH_RACE_LEFT);
+    CHECK(SwitchLocal_controls(1, 90.0f) == 0);
+    pads[2].x = 0;
+    CHECK(SwitchLocal_controls(2, 0.0f) == SWITCH_RACE_BRAKE);
+    CHECK(SwitchLocal_controls(3, 0.0f) == (SWITCH_RACE_TURBO | SWITCH_RACE_GAS));
+    pads[1].button[L] = 1;
+    CHECK(SwitchLocal_controls(2, 0.0f) == SWITCH_RACE_MINE);
+    CHECK(SwitchLocal_controls(2, 0.0f) == SWITCH_RACE_BRAKE);
+    pads[0].attached = 0;
+    CHECK(SwitchLocal_controls(1, 0.0f) == 0 && SwitchLocal_count() == 4);
+    CHECK(SwitchLocal_controls(3, 0.0f) == (SWITCH_RACE_TURBO | SWITCH_RACE_GAS));
+    pads[2].attached = 0;
+    CHECK(SwitchLocal_acceptMenuInput(22));
+    SwitchLocal_end();
+    CHECK(SwitchLocal_count() == 0 && SwitchLocal_acceptMenuInput(11));
+}
+
 int main(void){
 
     /* A confirms */
@@ -146,6 +205,8 @@ int main(void){
 
     /* numbers outside the table are ignored */
     SwitchInput_button(99, 1); SwitchInput_button(-1, 1);
+
+    test_local_players();
 
     if(failures) printf("%d check(s) failed\n", failures);
     else printf("switch_input: all checks passed\n");

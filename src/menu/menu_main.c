@@ -82,6 +82,121 @@ void dRChatbox_clear(void);
 void dRChatbox_push(const char *, int);
 void setIntensity___19eb50h(__DWORD__);
 
+#if defined(DR_SWITCH)
+#include "drally_keyboard.h"
+#include "switch_input.h"
+
+extern unsigned char ___1de7d0h[];
+extern int NUM_OF_LAPS;
+extern char ___19bd64h[16];
+extern const char ___18d492h[][0xf];
+extern int LAP_RECORD_MIN, LAP_RECORD_SEC, LAP_RECORD_100;
+extern __DWORD__ ___19bd60h;
+
+void race_main(int player, int cars);
+void IO_Loop(void);
+void __VESA101_PRESENTSCREEN__(void);
+__BYTE__ dRally_Keyboard_popLastKey(void);
+
+static void menu_local_race(void){
+	static const struct { __DWORD__ r, g, b; } colors[] = {
+		{ 53, 13, 9 }, { 11, 29, 60 }, { 13, 54, 18 }, { 60, 48, 10 }
+	};
+	static const char *const carNames[] = {
+		"VAGABOND", "DERVISH", "SENTINEL", "SHRIEKER", "WRAITH", "DELIVERATOR"
+	};
+	unsigned char savedRacers[4*0x54];
+	char savedTrack[sizeof(___19bd64h)];
+	int savedLaps = NUM_OF_LAPS;
+	int savedRecord[] = { LAP_RECORD_MIN, LAP_RECORD_SEC, LAP_RECORD_100 };
+	__POINTER__ screen = ___1a112ch__VESA101_ACTIVESCREEN_PTR;
+	int track = 0, car = 2, players, cars;
+	int bots = 1;
+	char text[64];
+
+	if(___19bd60h) return;
+	dRally_Keyboard_popLastKey();
+	if(!SwitchLocal_openLobby()) return;
+	printf("[dRally.LOCAL] Lobby opened\n");
+	for(;;){
+		IO_Loop();
+		players = SwitchLocal_joined();
+		___13248h_cdecl(100, 133, 440, 195, 1);
+		___12e78h_v3(___1a1108h___185c0bh, "Local Split-Screen", 123, 157);
+		snprintf(text, sizeof(text), "Track: %s", ___18d492h[track]);
+		___12e78h_v3(___1a1108h___185c0bh, text, 123, 186);
+		snprintf(text, sizeof(text), "Car: %s", carNames[car]);
+		___12e78h_v3(___1a1108h___185c0bh, text, 123, 208);
+		snprintf(text, sizeof(text), "Controllers: %d / 4", players);
+		___12e78h_v3(___1a1108h___185c0bh, text, 123, 230);
+		___12e78h_v3(___1a1108h___185c0bh, bots ? "Y: Bots on" : "Y: Bots off", 123, 252);
+		___12e78h_v3(___1a1108h___185c0bh, "Left/Right: track  Up/Down: car", 123, 276);
+		___12e78h_v3(___1a1108h___185c0bh, "+: Start  B: Back", 123, 298);
+		___12cb8h__VESA101_PRESENTSCREEN();
+		__VESA101_PRESENTSCREEN__();
+		switch(dRally_Keyboard_popLastKey()){
+		case DR_SCAN_LEFT: track = (track+8)%9; break;
+		case DR_SCAN_RIGHT: track = (track+1)%9; break;
+		case DR_SCAN_UP: car = (car+5)%6; break;
+		case DR_SCAN_DOWN: car = (car+1)%6; break;
+		case DR_SCAN_SPACE: bots = !bots; break;
+		case DR_SCAN_ESCAPE: SwitchLocal_end(); return;
+		case DR_SCAN_ENTER: if(SwitchLocal_begin() >= 2) goto start; break;
+		}
+		SDL_Delay(8);
+	}
+
+start:
+	players = SwitchLocal_count();
+	cars = bots ? SWITCH_LOCAL_MAX_PLAYERS : players;
+	memcpy(savedRacers, ___1de7d0h, sizeof(savedRacers));
+	memcpy(savedTrack, ___19bd64h, sizeof(savedTrack));
+	memset(___1de7d0h, 0, sizeof(savedRacers));
+	snprintf(___19bd64h, sizeof(___19bd64h), "TR%d", track+1);
+	NUM_OF_LAPS = 4;
+	LAP_RECORD_MIN = 99;
+	LAP_RECORD_SEC = LAP_RECORD_100 = 0;
+	for(int i = 0; i < cars; ++i){
+		unsigned char *slot = ___1de7d0h+0x54*i;
+		snprintf((char *)slot, 12, i < players ? "PLAYER %d" : "CPU %d", i+1);
+		D(slot+0x20) = 1; /* rocket fuel */
+		D(slot+0x28) = 8; /* mines */
+		D(slot+0x2c) = 1; /* weapons enabled */
+		D(slot+0x30) = car;
+		D(slot+0x34) = colors[i].r;
+		D(slot+0x38) = colors[i].g;
+		D(slot+0x3c) = colors[i].b;
+		D(slot+0x44) = i < players ? 3 : 1;
+	}
+	printf("[dRally.LOCAL] Starting %d players and %d bots on %s, car=%d\n", players, cars-players, ___19bd64h, car);
+	race_main(0, cars);
+	SwitchLocal_end();
+	memcpy(___1de7d0h, savedRacers, sizeof(savedRacers));
+	memcpy(___19bd64h, savedTrack, sizeof(savedTrack));
+	NUM_OF_LAPS = savedLaps;
+	LAP_RECORD_MIN = savedRecord[0];
+	LAP_RECORD_SEC = savedRecord[1];
+	LAP_RECORD_100 = savedRecord[2];
+	___1a112ch__VESA101_ACTIVESCREEN_PTR = screen;
+	___606dfh();
+	__VESA101_SETMODE();
+	___605deh_cdecl(60, 0);
+	___12940h();
+	{
+		racer_t *racers = (racer_t *)___1a01e0h;
+		const rgb24_t *color = &___1a0fb8h[racers[D(___1a1ef8h)].color];
+		___11564h_cdecl(color->r, color->g, color->b);
+	}
+	setIntensity___19eb50h(100);
+	dRally_Sound_load(1, "MEN-MUS.CMF", 2, "MEN-SAM.CMF", 5);
+	dRally_Sound_setMusicVolume(___24cc58h_msx_volume);
+	dRally_Sound_setEffectsVolume(___24cc54h_sfx_volume);
+	dRally_Sound_setSampleRate(0x5622);
+	dRally_Sound_play();
+	dRally_Sound_setMasterVolume(0x10000);
+}
+#endif
+
 void menu_main(void){
 
     int   			n;
@@ -239,7 +354,14 @@ void menu_main(void){
 		case 6: // SHOW PREVIEW
 			menu___3da48h();
 			break;
+#if defined(DR_SWITCH)
+		case 7: // LOCAL SPLIT-SCREEN
+			menu_local_race();
+			break;
+		case 8: // EXIT GAME
+#else
 		case 7: // EXIT TO DOS
+#endif
 			___13710h(0, 0);
 			___13248h_cdecl(170, 200, 300, 80, 1);
 			___12e78h_v3(___1a1108h___185c0bh, "Are you sure?", 253, 208);

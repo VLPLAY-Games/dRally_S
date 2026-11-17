@@ -61,6 +61,7 @@ static __BYTE__ todo_in(__WORD__ w){
 
 #if defined(DR_SWITCH)
 #include "switch_steer.h"
+#include "switch_input.h"
 #endif // DR_SWITCH
 
 void race___40164h(void){
@@ -71,6 +72,23 @@ void race___40164h(void){
 #if defined(DR_MULTIPLAYER)
 	if((___19bd60h != 0)&&(CONNECTION_TYPE == 2)) ___63b20h(1, D(___199f9ch));
 #endif // DR_MULTIPLAYER
+
+#if defined(DR_SWITCH)
+	if(SwitchLocal_count()){
+		if(D(SUPERGLOBAL___243cd0h) == 0){
+			s_35e = (struct_35e_t *)___1e6ed0h;
+			for(int i = 0; i < SwitchLocal_count(); ++i){
+				s_35e[i].ActionFlags[s_35e[i].ActionFlags_i] = SwitchLocal_controls(i, s_35e[i].Direction);
+				s_35e[i].ActionFlags_i = (s_35e[i].ActionFlags_i + 1) & 0xf;
+			}
+			incCounter(2);
+			if((int)getCounter(2) >= 0xf) resetCounter(2);
+			incCounter(3);
+		}
+		D(SUPERGLOBAL___243cach)++;
+		return;
+	}
+#endif
 
 	aFlags = CTRL_NULL;
 	if(D(SUPERGLOBAL___243cd0h) == 0){

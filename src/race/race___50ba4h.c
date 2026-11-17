@@ -1,4 +1,7 @@
 #include "drally.h"
+#if defined(DR_SWITCH)
+#include "switch_input.h"
+#endif
 #include "drally_structs_free.h"
 
 	extern __POINTER__ BACKBUFFER;
@@ -48,14 +51,23 @@ void race___50ba4h(void){
 			}
 		}
 
+#if defined(DR_SWITCH)
+		if(SwitchLocal_advanceEffects())
+#endif
 		s_35e[D(___243c60h)].__1b2 = 0;
 	}
 
 	if((int)s_35e[D(___243c60h)].__1ae > 0){
 
 		n = CURRENT_VIEWPORT_X+s_35e[D(___243c60h)].__1c2-TRX_VIEWPORT_TL_X;
+#if defined(DR_SWITCH)
+		if(SwitchLocal_advanceEffects())
+#endif
 		s_35e[D(___243c60h)].__1ca = s_35e[D(___243c60h)].__1c2;
 		m = s_35e[D(___243c60h)].__1c6-TRX_VIEWPORT_TL_Y;
+#if defined(DR_SWITCH)
+		if(SwitchLocal_advanceEffects())
+#endif
 		s_35e[D(___243c60h)].__1ce = s_35e[D(___243c60h)].__1c6;
 
 		if(n >= CURRENT_VIEWPORT_X){
@@ -79,7 +91,13 @@ void race___50ba4h(void){
 			}
 		}
 
+#if defined(DR_SWITCH)
+		if(SwitchLocal_advanceEffects())
+#endif
 		s_35e[D(___243c60h)].__1b2 = 1+s_35e[D(___243c60h)].__1ae;
+#if defined(DR_SWITCH)
+		if(SwitchLocal_advanceEffects())
+#endif
 		s_35e[D(___243c60h)].__1ae = 0;
 	}
 

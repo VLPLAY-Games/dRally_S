@@ -1,4 +1,7 @@
 #include "drally.h"
+#if defined(DR_SWITCH)
+#include "switch_input.h"
+#endif
 
 #pragma pack(1)
 typedef union struct_94_s {
@@ -285,7 +288,12 @@ void race___3f970h(void){
 		F32(___1de580h[n].raw+0x14) = (float)(3.75/((double)___3f5b0h_floats[___1de7d0h[n].dfclty][___1de580h[n].car]-0.05*(double)D(___1de7d0h[n].raw+0x14)));
 		D(___1de580h[n].raw+0x1c) = ___3f610h_ints[___1de7d0h[n].dfclty][___1de580h[n].car]+___3f670h_ints[___1de7d0h[n].dfclty][D(___1de7d0h[n].raw+0x1c)];
 
-		if(D(MY_CAR_IDX) == n) D(___1de580h[n].raw+0x1c) += 0x64;
+		#if defined(DR_SWITCH)
+		if(SwitchLocal_count() ? n < SwitchLocal_count() : D(MY_CAR_IDX) == n)
+#else
+		if(D(MY_CAR_IDX) == n)
+#endif
+			D(___1de580h[n].raw+0x1c) += 0x64;
 
 		if(strcmp(___1de7d0h[n].raw, "DUKE NUKEM") == 0) D(___1de580h[n].raw+0x1c) = (int)(2.2*(double)D(___1de580h[n].raw+0x1c));
 

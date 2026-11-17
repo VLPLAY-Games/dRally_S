@@ -96,6 +96,21 @@ The picture waits for the screen (vsync, no tearing) while the game keeps its ow
 | `stick_mode` | 1 | 1: the stick points where the car should go on the screen; 0: it turns the car left and right |
 | `stick_invert_x` | 0 | 1 swaps left and right of the left stick |
 
+### Local Split-Screen
+
+Open **Local Split-Screen** from the main menu and register 2–4 external
+controllers in the Switch controller screen. The applet's player slots set the
+race roster. Press **+** once all registered controllers are connected.
+Left/Right picks the track, Up/Down picks the shared car model, and **Y** toggles
+computer drivers.
+
+Each view follows its own car. The left stick or D-pad steers, **ZR** accelerates,
+**ZL** brakes, **X** boosts, **R** fires and **L** drops a mine. Player 1 controls
+pause (**+**) and the leave prompt (**−**). With bots enabled, computer drivers
+fill the remaining spots. Two players use the left and right halves of the
+screen. Three or four players use a 2×2 grid. The quick race uses its own roster
+and does not advance the career.
+
 ### Network race (experimental)
 
 The game plays over the network with the IPX protocol of old local networks. dRally sends the IPX packets inside UDP to one small server, which hands them on to the other players. Every player connects to the same server, which runs on a computer in your network (not on the console).

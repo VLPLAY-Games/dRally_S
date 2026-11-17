@@ -5,6 +5,9 @@
 #include "drmath.h"
 #include "sfx.h"
 #include "drally_structs_free.h"
+#if defined(DR_SWITCH)
+#include "switch_input.h"
+#endif
 
 #if defined(DR_MULTIPLAYER)
 	extern __DWORD__ ___19bd60h;
@@ -200,6 +203,9 @@ static void race___4b62ch_helper(int n){
 #if defined(DR_MULTIPLAYER)
 		if(___19bd60h == 0){
 #endif // DR_MULTIPLAYER
+			#if defined(DR_SWITCH)
+			if(n < SwitchLocal_count()) return;
+#endif
 			if(MY_CAR_IDX != n) race___4b62ch(n);
 #if defined(DR_MULTIPLAYER)
 		}
@@ -216,7 +222,6 @@ static void race___4ff50h_helper(int n){ D(___243c60h) = n; race___4ff50h(); }
 // ___56774h
 #if defined(DR_SWITCH)
 #include "switch_touch.h"
-#include "switch_input.h"
 #include "switch_config.h"
 #include "switch_steer.h"
 #include "switch_rumble.h"
@@ -224,11 +229,110 @@ static void race___4ff50h_helper(int n){ D(___243c60h) = n; race___4ff50h(); }
 #define race_main race_main_body
 #endif // DR_SWITCH
 
+/* Draw one view of the already simulated race. */
+static void race_draw_view(void){
+	unsigned int width;
+	int row;
+
+	race___4ee9ch();
+	race___4f030h();
+
+	width = CURRENT_VIEWPORT_W+4;
+	width -= width&3;
+	row = -1;
+	while(++row < 0xc8){	// COPY TRACK BACKGROUND
+
+
+		memcpy(BACKBUFFER+0x200*row+CURRENT_VIEWPORT_X+0x60, TRX_IMA+TRX_WIDTH*(TRX_VIEWPORT_TL_Y+row)+TRX_VIEWPORT_TL_X, width);
+	}
+
+#if defined(DR_MULTIPLAYER)
+	if(___19bd60h == 0){
+#endif // DR_MULTIPLAYER
+		race___52d7ch();
+#if defined(DR_MULTIPLAYER)
+	}
+#endif // DR_MULTIPLAYER
+	D(___243c60h) = -1;
+	while(++D(___243c60h) < NUM_OF_CARS) race___50ef4h();
+	race___4f300h();	// RENDER CARS
+	race___51ce0h();
+	if(dRally_Race_getSettings(RACE_SHADOWS)) race___4f170h();
+	D(___243c60h) = -1;
+	while(++D(___243c60h) < NUM_OF_CARS) race___50a48h();
+	D(___243c60h) = -1;
+	while(++D(___243c60h) < NUM_OF_CARS) race___51204h();
+	race___53310h();	// SORT OBJECTS
+	race___53464h();	// OBJECTS
+	D(___243c60h) = -1;
+	while(++D(___243c60h) < NUM_OF_CARS) race___50ba4h();
+	race___51eb4h();
+}
+
+#if defined(DR_SWITCH)
+static unsigned char localViews[640*400];
+/* The original drawing routines also age transient effects. Do that only
+   when drawing the final view, after the other cameras saw the same state. */
+static int localAdvanceEffects = 1;
+static Uint32 localReportStart, localFrameCount, localDrawStart, localDrawTotal;
+
+static void race_present_local_views(void){
+	const int players = SwitchLocal_count();
+	localDrawTotal += SDL_GetTicks() - localDrawStart;
+	SwitchLocal_present(localViews, 640, players == 2 ? 200 : 400);
+	const Uint32 now = SDL_GetTicks();
+	if(!localReportStart) localReportStart = now;
+	++localFrameCount;
+	if(now - localReportStart >= 2000){
+		printf("[dRally.LOCAL] players=%d fps=%.1f views_ms=%.2f\n", players,
+			1000.0 * localFrameCount / (now - localReportStart), (double)localDrawTotal / localFrameCount);
+		localReportStart = now;
+		localFrameCount = localDrawTotal = 0;
+	}
+}
+int SwitchLocal_advanceEffects(void){ return localAdvanceEffects; }
+
+void race___40864h(void);
+void ___424c8h_v2(const char *text, int x, int y);
+
+static void race_draw_local_views(const struct_35e_t *cars){
+	const int players = SwitchLocal_count();
+	const int height = players == 2 ? 200 : 400;
+
+	localDrawStart = SDL_GetTicks();
+	memset(localViews, 0, 640*height);
+	CURRENT_VIEWPORT_W = 320;
+	CURRENT_VIEWPORT_CENTER_X = 160;
+	CURRENT_VIEWPORT_X = 0;
+	for(int i = players-1; i >= 0; --i){
+		char status[40];
+		const int offset = (i/2)*200*640 + (i%2)*320;
+		MY_CAR_IDX = i;
+		localAdvanceEffects = i == 0;
+		race_draw_view();
+		if(i == 0){
+			if((int)getCounter(1) < 0x122) race___42218h();
+			race___40db4h();
+		}
+		else race___40864h();
+
+		snprintf(status, sizeof(status), "P%d  POS %d  LAP %d", i+1, cars[i].Position, cars[i].Lap);
+		for(int row = 0; row < 10; ++row) memset(BACKBUFFER+0x60+0x200*(190+row), 0, 320);
+		___424c8h_v2(status, 0x64, 192);
+		if(i && getCounter(1) <= 0xbe) ___424c8h_v2("GET READY", 0x60+133, 88);
+		if(cars[i].Finished) ___424c8h_v2("FINISHED", 0x60+136, 100);
+		for(int row = 0; row < 200; ++row){
+			memcpy(localViews+offset+row*640, BACKBUFFER+0x200*row+0x60, 320);
+		}
+	}
+}
+#endif
+
 void race_main(int MyIndex, int NumCars){		// my_position_index, number_of_racers
 
 	__DWORD__ 	eax, ebx, ecx, edx;
 	__BYTE__ 	esp[0x1c];
-	int 	i, j, n, bool_tmp, k, m, c, frames;
+	int 	i, j, n, bool_tmp, k, c, frames;
 	struct_35e_t *	s_35e;
 	struct_94_t * 	s_94;
 	struct_54_t *	s_54;
@@ -338,6 +442,18 @@ void race_main(int MyIndex, int NumCars){		// my_position_index, number_of_racer
 
 		D(___243d08h) = 0;
 
+#if defined(DR_SWITCH)
+		if(SwitchLocal_count()){
+			const int count = getCounter(5);
+			for(int player = 0; player < SwitchLocal_count(); ++player){
+				for(int tick = 0; tick < count; ++tick){
+					const int index = (s_35e[player].ActionFlags_i - count + tick) & 0xf;
+					s_35e[player].Ctrls[tick] = s_35e[player].ActionFlags[index];
+				}
+			}
+		}
+		else
+#endif
 		if((int)getCounter(5) > 0){
 
 			while(1){
@@ -518,6 +634,16 @@ void race_main(int MyIndex, int NumCars){		// my_position_index, number_of_racer
 
 				if(___19bd60h == 0){
 #endif // DR_MULTIPLAYER			
+					#if defined(DR_SWITCH)
+					if(SwitchLocal_count()){
+						int done = 0;
+						for(int player = 0; player < SwitchLocal_count(); ++player){
+							if(s_35e[player].Finished || (int)s_94[player].__18 <= 0) ++done;
+						}
+						if(done == SwitchLocal_count()) D(___2438c8h)++;
+					}
+					else
+#endif
 					if((s_35e[MY_CAR_IDX].Finished != 0)||((int)s_94[MY_CAR_IDX].__18 <= 0)) D(___2438c8h)++;
 #if defined(DR_MULTIPLAYER)
 				}
@@ -541,6 +667,9 @@ void race_main(int MyIndex, int NumCars){		// my_position_index, number_of_racer
 				}
 
 				eax = NUM_OF_CARS-1;
+				#if defined(DR_SWITCH)
+				if(!SwitchLocal_count())
+#endif
 				if((int)eax <= (int)D(___243d0ch)) D(___2438c8h)++;
 				incCounter(4);
 				decCounter(5);
@@ -551,6 +680,9 @@ void race_main(int MyIndex, int NumCars){		// my_position_index, number_of_racer
 #if defined(DR_MULTIPLAYER)
 		if(___19bd60h == 0){
 #endif // DR_MULTIPLAYER		
+			#if defined(DR_SWITCH)
+			if(!SwitchLocal_count())
+#endif
 			if(s_94[0].__0 != 6) race___4c21ch();
 #if defined(DR_MULTIPLAYER)
 		}
@@ -574,6 +706,9 @@ void race_main(int MyIndex, int NumCars){		// my_position_index, number_of_racer
 #endif // DR_MULTIPLAYER
 		}
 
+#if defined(DR_SWITCH)
+		if(!SwitchLocal_count())
+#endif
 		if(!D(___243d00h)&&kmap[DR_SCAN_TAB]){
 			
 			D(___243d00h) = 1;
@@ -582,6 +717,9 @@ void race_main(int MyIndex, int NumCars){		// my_position_index, number_of_racer
 
 		if(kmap[DR_SCAN_TAB] == 0) D(___243d00h) = 0;
 
+#if defined(DR_SWITCH)
+		if(!SwitchLocal_count())
+#endif
 		if((int)s_94[MY_CAR_IDX].__18 <= 0) dRally_Race_setSettings(RACE_NOTWIDE);
 
 		if(kmap[DR_SCAN_F2] != 0){	// MSX
@@ -627,48 +765,22 @@ void race_main(int MyIndex, int NumCars){		// my_position_index, number_of_racer
 
 		frames = __GET_FRAME_COUNTER();
 
-		race___4ee9ch();
-		race___4f030h();
-
-		ecx = CURRENT_VIEWPORT_W+4;
-		ecx -= ecx&3;
-		m = -1;
-		while(++m < 0xc8){	// COPY TRACK BACKGROUND
-
-
-			memcpy(BACKBUFFER+0x200*m+CURRENT_VIEWPORT_X+0x60, TRX_IMA+TRX_WIDTH*(TRX_VIEWPORT_TL_Y+m)+TRX_VIEWPORT_TL_X, ecx);
+#if defined(DR_SWITCH)
+		if(SwitchLocal_count()) race_draw_local_views(s_35e);
+		else
+#endif
+		{
+			race_draw_view();
+#if defined(DR_MULTIPLAYER)
+			if(___19bd60h == 0){
+#endif // DR_MULTIPLAYER
+				race___56594h();	// INRACE CHEATS
+#if defined(DR_MULTIPLAYER)
+			}
+#endif // DR_MULTIPLAYER
+			if((int)getCounter(1) < 0x122) race___42218h();
+			(CURRENT_VIEWPORT_W != 0x140) ? race___40f48h() : race___40db4h();
 		}
-
-#if defined(DR_MULTIPLAYER)
-		if(___19bd60h == 0){
-#endif // DR_MULTIPLAYER
-			race___52d7ch();
-#if defined(DR_MULTIPLAYER)
-		}
-#endif // DR_MULTIPLAYER
-		D(___243c60h) = -1;
-		while(++D(___243c60h) < NUM_OF_CARS) race___50ef4h();
-		race___4f300h();	// RENDER CARS
-		race___51ce0h();
-		if(dRally_Race_getSettings(RACE_SHADOWS)) race___4f170h();
-		D(___243c60h) = -1;
-		while(++D(___243c60h) < NUM_OF_CARS) race___50a48h();
-		D(___243c60h) = -1;
-		while(++D(___243c60h) < NUM_OF_CARS) race___51204h();
-		race___53310h();	// SORT OBJECTS
-		race___53464h();	// OBJECTS
-		D(___243c60h) = -1;
-		while(++D(___243c60h) < NUM_OF_CARS) race___50ba4h();
-		race___51eb4h();
-#if defined(DR_MULTIPLAYER)
-		if(___19bd60h == 0){
-#endif // DR_MULTIPLAYER
-			race___56594h();	// INRACE CHEATS
-#if defined(DR_MULTIPLAYER)
-		}
-#endif // DR_MULTIPLAYER
-		if((int)getCounter(1) < 0x122) race___42218h();
-		(CURRENT_VIEWPORT_W != 0x140) ? race___40f48h() : race___40db4h();
 
 		D(___243c60h) = -1;
 		while(++D(___243c60h) < NUM_OF_CARS){
@@ -693,6 +805,12 @@ void race_main(int MyIndex, int NumCars){		// my_position_index, number_of_racer
 		*/
 		while (frames == __GET_FRAME_COUNTER());
 
+#if defined(DR_SWITCH)
+		if(SwitchLocal_count()){
+			race_present_local_views();
+		}
+		else
+#endif
 		if((int)s_35e[MY_CAR_IDX].Drug > 0){
 
 			race___454ach();
@@ -859,6 +977,7 @@ void race_main(int MyIndex, int NumCars){
 	SwitchTouch_setMode(SWITCHTOUCH_RACE);
 	SwitchInput_setRace(1);
 	SwitchSteer_reset();
+	localReportStart = localFrameCount = localDrawTotal = 0;
 	race_main_body(MyIndex, NumCars);
 	SwitchInput_setRace(0);
 	SwitchTouch_setMode(SWITCHTOUCH_SCREENS);

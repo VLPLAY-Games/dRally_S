@@ -11,6 +11,10 @@
    make/break is sent only when a key changes. */
 
 #include <stdlib.h>
+#if defined(__SWITCH__)
+#include <switch.h>
+#include <stdio.h>
+#endif
 
 #define SW_MAX_BUTTONS 32
 #define SW_AXIS_THRESHOLD 12000
@@ -147,3 +151,202 @@ void SwitchInput_axis(int axis, int value){
     }
     update_keys();
 }
+
+#if defined(DR_SWITCH)
+static SDL_JoystickID localPlayers[SWITCH_LOCAL_MAX_PLAYERS];
+static unsigned char mineHeld[SWITCH_LOCAL_MAX_PLAYERS];
+static SwitchSteerState localSteering[SWITCH_LOCAL_MAX_PLAYERS];
+static int localCount, joinedCount, localLobby;
+
+#if defined(__SWITCH__)
+static PadState localPads[SWITCH_LOCAL_MAX_PLAYERS];
+
+Result __real_hidLaShowControllerSupportForSystem(HidLaControllerSupportResultInfo *, const HidLaControllerSupportArg *, bool);
+
+Result __wrap_hidLaShowControllerSupportForSystem(HidLaControllerSupportResultInfo *info,
+        const HidLaControllerSupportArg *args, bool flag){
+    /* SDL invokes its eight-slot applet when controller assignments change. */
+    if(localLobby || localCount) return MAKERESULT(Module_Libnx, LibnxError_LibAppletBadExit);
+    return __real_hidLaShowControllerSupportForSystem(info, args, flag);
+}
+
+static int local_pad_connected(int player){
+    padUpdate(&localPads[player]);
+    return padIsConnected(&localPads[player]);
+}
+#endif
+
+int SwitchLocal_openLobby(void){
+    SwitchLocal_end();
+    localLobby = 1;
+#if defined(__SWITCH__)
+    static const HidNpadIdType ids[SWITCH_LOCAL_MAX_PLAYERS] = {
+        HidNpadIdType_No1, HidNpadIdType_No2, HidNpadIdType_No3, HidNpadIdType_No4
+    };
+    HidLaControllerSupportArg args;
+    HidLaControllerSupportResultInfo info = {0};
+    u32 originalStyles;
+    Result rc = hidGetSupportedNpadStyleSet(&originalStyles);
+    if(R_FAILED(rc)){
+        SwitchLocal_end();
+        return 0;
+    }
+
+    hidLaCreateControllerSupportArg(&args);
+    args.hdr.player_count_min = 2;
+    args.hdr.player_count_max = SWITCH_LOCAL_MAX_PLAYERS;
+    rc = hidSetSupportedNpadStyleSet(HidNpadStyleSet_NpadFullCtrl);
+    if(R_SUCCEEDED(rc)) rc = hidSetSupportedNpadIdType(ids, SWITCH_LOCAL_MAX_PLAYERS);
+    if(R_SUCCEEDED(rc)) rc = hidLaShowControllerSupport(&info, &args);
+    /* Restore the eight numbered slots and handheld input configured by SDL. */
+    padConfigureInput(8, originalStyles);
+    SDL_PumpEvents();
+    SDL_FlushEvents(SDL_JOYBUTTONDOWN, SDL_JOYBUTTONUP);
+    printf("[dRally.LOCAL] Controller applet: result=0x%x, external=%d\n", rc, info.player_count);
+    if(R_FAILED(rc) || info.player_count < 2 || info.player_count > SWITCH_LOCAL_MAX_PLAYERS){
+        SwitchLocal_end();
+        return 0;
+    }
+
+    /* The applet assigns accepted controllers to consecutive slots from No1. */
+    joinedCount = info.player_count;
+    for(int i = 0; i < joinedCount; ++i){
+        padInitialize(&localPads[i], ids[i]);
+        localPlayers[i] = ids[i];
+        printf("[dRally.LOCAL] Player %d: Npad %d\n", i+1, localPlayers[i]);
+    }
+#endif
+    return 1;
+}
+
+int SwitchLocal_joined(void){
+#if defined(__SWITCH__)
+    int connected = 0;
+    for(int i = 0; i < joinedCount; ++i) connected += local_pad_connected(i);
+    return connected;
+#else
+    for(int i = 0; i < joinedCount; ){
+        SDL_Joystick *pad = SDL_JoystickFromInstanceID(localPlayers[i]);
+        if(pad && SDL_JoystickGetAttached(pad)){
+            ++i;
+            continue;
+        }
+        for(int j = i; j+1 < joinedCount; ++j) localPlayers[j] = localPlayers[j+1];
+        --joinedCount;
+    }
+    return joinedCount;
+#endif
+}
+
+int SwitchLocal_lobbyButton(SDL_JoystickID id, int button, int down){
+    if(!localLobby) return 0;
+    if(button == SW_A){
+#if !defined(__SWITCH__)
+        if(down && SwitchLocal_joined() < SWITCH_LOCAL_MAX_PLAYERS){
+            for(int i = 0; i < joinedCount; ++i){
+                if(localPlayers[i] == id) return 1;
+            }
+            localPlayers[joinedCount++] = id;
+        }
+#endif
+        return 1;
+    }
+    if(button == SW_PLUS){
+        if(down) dRally_Keyboard_make(SDL_SCANCODE_RETURN);
+        else dRally_Keyboard_break(SDL_SCANCODE_RETURN);
+        return 1;
+    }
+    return 0;
+}
+
+int SwitchLocal_begin(void){
+    const int count = SwitchLocal_joined();
+    if(count < 2) return 0;
+#if defined(__SWITCH__)
+    if(count != joinedCount) return 0;
+    for(int i = 0; i < count; ++i){
+        mineHeld[i] = !!(padGetButtons(&localPads[i]) & HidNpadButton_L);
+    }
+#else
+    for(int i = 0; i < count; ++i){
+        SDL_Joystick *pad = SDL_JoystickFromInstanceID(localPlayers[i]);
+        mineHeld[i] = pad && SDL_JoystickGetButton(pad, SW_L);
+    }
+#endif
+    localCount = count;
+    localLobby = 0;
+    for(int i = 0; i < count; ++i) localSteering[i] = (SwitchSteerState){0};
+    dRally_Keyboard_break(SDL_SCANCODE_RETURN);
+    return localCount;
+}
+
+void SwitchLocal_end(void){
+    localCount = localLobby = joinedCount = 0;
+    dRally_Keyboard_break(SDL_SCANCODE_RETURN);
+    for(int i = 0; i < SW_MAX_BUTTONS; ++i) SW.button[i] = 0;
+    SW.axis_x = SW.axis_y = SW.hat = 0;
+    update_keys();
+}
+
+int SwitchLocal_count(void){ return localCount; }
+
+int SwitchLocal_acceptMenuInput(SDL_JoystickID id){
+    for(int i = 0; i < localCount; ++i){
+#if defined(__SWITCH__)
+        if(local_pad_connected(i)) return id == SDL_JoystickGetDeviceInstanceID(localPlayers[i]);
+#else
+        SDL_Joystick *pad = SDL_JoystickFromInstanceID(localPlayers[i]);
+        if(pad && SDL_JoystickGetAttached(pad)) return id == localPlayers[i];
+#endif
+    }
+    return 1;
+}
+
+unsigned char SwitchLocal_controls(int player, float direction){
+    unsigned char controls = 0;
+    int x, y, left, right, mine;
+    unsigned int buttons;
+
+#if defined(__SWITCH__)
+    if(!local_pad_connected(player)){
+        localSteering[player] = (SwitchSteerState){0};
+        return 0;
+    }
+    const HidAnalogStickState stick = padGetStickPos(&localPads[player], 0);
+    x = stick.x;
+    y = -stick.y; /* libnx uses positive up, the game uses positive down */
+    buttons = (unsigned int)padGetButtons(&localPads[player]);
+#else
+    SDL_Joystick *pad = SDL_JoystickFromInstanceID(localPlayers[player]);
+    if(!pad || !SDL_JoystickGetAttached(pad)){
+        localSteering[player] = (SwitchSteerState){0};
+        return 0;
+    }
+    x = SDL_JoystickGetAxis(pad, 0);
+    y = SDL_JoystickGetAxis(pad, 1);
+    buttons = 0;
+    for(int i = SW_X; i <= SW_STICK_RIGHT; ++i) buttons |= (unsigned int)SDL_JoystickGetButton(pad, i) << i;
+    if(SDL_JoystickNumHats(pad)){
+        const int hat = SDL_JoystickGetHat(pad, 0);
+        if(hat & SDL_HAT_LEFT) buttons |= 1u << SW_DLEFT;
+        if(hat & SDL_HAT_RIGHT) buttons |= 1u << SW_DRIGHT;
+    }
+#endif
+    if(SwitchConfig.stick_invert_x) x = -x;
+    SwitchSteer_tickStick(&localSteering[player], x/32767.0f, y/32767.0f, direction, &left, &right);
+    if(!SwitchConfig.analog_steering){
+        left = (buttons & (1u << SW_STICK_LEFT)) || x < -SW_AXIS_THRESHOLD;
+        right = (buttons & (1u << SW_STICK_RIGHT)) || x > SW_AXIS_THRESHOLD;
+    }
+    if(left || (buttons & (1u << SW_DLEFT))) controls |= SWITCH_RACE_LEFT;
+    if(right || (buttons & (1u << SW_DRIGHT))) controls |= SWITCH_RACE_RIGHT;
+    if(buttons & (1u << SW_ZR)) controls |= SWITCH_RACE_GAS;
+    if(buttons & (1u << SW_ZL)) controls |= SWITCH_RACE_BRAKE;
+    if(buttons & (1u << SW_X)) controls |= SWITCH_RACE_TURBO | SWITCH_RACE_GAS;
+    if(buttons & (1u << SW_R)) controls |= SWITCH_RACE_GUN;
+    mine = !!(buttons & (1u << SW_L));
+    if(mine && !mineHeld[player]) controls = (controls & ~SWITCH_RACE_BRAKE) | SWITCH_RACE_MINE;
+    mineHeld[player] = mine;
+    return controls;
+}
+#endif

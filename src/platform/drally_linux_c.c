@@ -261,6 +261,34 @@ void __PRESENTSCREEN__(void){
 	}
 }
 
+void SwitchLocal_present(const unsigned char *pixels, int width, int height){
+	static SDL_Texture *texture;
+	static int textureHeight;
+	int logicalWidth, logicalHeight;
+	Uint32 palette[256];
+
+	if(!GX.ActiveMode) return;
+	if(!texture || textureHeight != height){
+		if(texture) SDL_DestroyTexture(texture);
+		texture = SDL_CreateTexture(GX.Renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, width, height);
+		textureHeight = height;
+	}
+	if(!texture) return;
+	for(int i = 0; i < 256; ++i){
+		const SDL_Color c = GX.Surface->format->palette->colors[i];
+		palette[i] = 0xff000000u | ((Uint32)c.r << 16) | ((Uint32)c.g << 8) | c.b;
+	}
+	for(int i = 0; i < width*height; ++i) SW_Pixels[i] = palette[pixels[i]];
+	if(SDL_UpdateTexture(texture, NULL, SW_Pixels, width*sizeof(Uint32)) != 0) return;
+
+	SDL_RenderGetLogicalSize(GX.Renderer, &logicalWidth, &logicalHeight);
+	SDL_RenderSetLogicalSize(GX.Renderer, 0, 0);
+	SDL_RenderClear(GX.Renderer);
+	SDL_RenderCopy(GX.Renderer, texture, NULL, NULL);
+	SDL_RenderPresent(GX.Renderer);
+	SDL_RenderSetLogicalSize(GX.Renderer, logicalWidth, logicalHeight);
+}
+
 #else
 
 void __PRESENTSCREEN__(void){

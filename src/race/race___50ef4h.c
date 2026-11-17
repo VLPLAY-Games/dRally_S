@@ -1,4 +1,7 @@
 #include "drally.h"
+#if defined(DR_SWITCH)
+#include "switch_input.h"
+#endif
 #include "drally_structs_free.h"
 
 	extern __POINTER__ BACKBUFFER;
@@ -51,6 +54,9 @@ void race___50ef4h(void){
 				helper_copy(BACKBUFFER, i0+0x5c, j0-4, RACE_SMOKE_BPK+0x40*((s_35e[D(___243c60h)].__1e2[n]-1)/4));
 			}
 
+#if defined(DR_SWITCH)
+			if(SwitchLocal_advanceEffects())
+#endif
 			s_35e[D(___243c60h)].__1e2[n] += D(___243334h);
 			if((int)s_35e[D(___243c60h)].__1e2[n] > 0xc) s_35e[D(___243c60h)].__1e2[n] = 0;
 		}
@@ -66,6 +72,9 @@ void race___50ef4h(void){
 				helper_copy(BACKBUFFER, i0+0x5c, j0-4, RACE_SMOKE_BPK+0x40*((s_35e[D(___243c60h)].__21e[n]-1)/4));
 			}
 
+#if defined(DR_SWITCH)
+			if(SwitchLocal_advanceEffects())
+#endif
 			s_35e[D(___243c60h)].__21e[n] += D(___243334h);
 			if((int)s_35e[D(___243c60h)].__21e[n] > 0xc) s_35e[D(___243c60h)].__21e[n] = 0;
 		}

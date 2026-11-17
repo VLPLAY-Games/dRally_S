@@ -1,4 +1,7 @@
 #include "drally.h"
+#if defined(DR_SWITCH)
+#include "switch_input.h"
+#endif
 #include "drally_structs_free.h"
 
 	extern __BYTE__ ___243c60h[];
@@ -45,9 +48,15 @@ void race___50a48h(void){
 			} while (--j);
 		}
 
+#if defined(DR_SWITCH)
+		if(SwitchLocal_advanceEffects())
+#endif
 		s_35e[D(___243c60h)].__1b6 = 0;
 	}
 
+#if defined(DR_SWITCH)
+	if(SwitchLocal_advanceEffects())
+#endif
 	s_94[D(___243c60h)].__60++;
 
 	if((s_94[D(___243c60h)].__5c-1) < (int)s_94[D(___243c60h)].__60) s_94[D(___243c60h)].__60 = 0;

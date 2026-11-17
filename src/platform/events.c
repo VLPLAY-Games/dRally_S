@@ -38,10 +38,12 @@ static void switch_handle_event(const SDL_Event * e){
             logged++;
             printf("[dRally.INPUT] joystick button %d %s\n", e->jbutton.button, (e->type == SDL_JOYBUTTONDOWN) ? "down" : "up");
         }
-        SwitchInput_button(e->jbutton.button, e->type == SDL_JOYBUTTONDOWN);
+        if(SwitchLocal_lobbyButton(e->jbutton.which, e->jbutton.button, e->type == SDL_JOYBUTTONDOWN)) break;
+        if(SwitchLocal_acceptMenuInput(e->jbutton.which))
+            SwitchInput_button(e->jbutton.button, e->type == SDL_JOYBUTTONDOWN);
         break;
     case SDL_JOYHATMOTION:
-        SwitchInput_hat(e->jhat.value);
+        if(SwitchLocal_acceptMenuInput(e->jhat.which)) SwitchInput_hat(e->jhat.value);
         break;
     case SDL_JOYAXISMOTION:
         /* the first strong deflections of the left stick are logged: which way is negative */
@@ -50,7 +52,7 @@ static void switch_handle_event(const SDL_Event * e){
             axis_logged++;
             printf("[dRally.INPUT] joystick axis %d value %d\n", e->jaxis.axis, e->jaxis.value);
         }
-        SwitchInput_axis(e->jaxis.axis, e->jaxis.value);
+        if(SwitchLocal_acceptMenuInput(e->jaxis.which)) SwitchInput_axis(e->jaxis.axis, e->jaxis.value);
         break;
     case SDL_JOYDEVICEADDED:
         SDL_JoystickOpen(e->jdevice.which);

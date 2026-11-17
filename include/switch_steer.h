@@ -8,6 +8,14 @@
    The source is the left stick (with a dead zone): either how far it is pushed to the sides, or,
    in direction steering, where it points on the screen. */
 
+typedef struct {
+    float acc;
+    int last_dir;
+} SwitchSteerState;
+
+void SwitchSteer_tickStick(SwitchSteerState *state, float x, float y, float direction,
+                           int *left, int *right);
+
 /* The left stick's horizontal position, -1 (left) to 1 (right). */
 void SwitchSteer_setStick(float x);
 

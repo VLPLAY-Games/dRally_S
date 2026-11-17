@@ -1,4 +1,7 @@
 #include "drally.h"
+#if defined(DR_SWITCH)
+#include "switch_input.h"
+#endif
 #include "drmath.h"
 #include "drally_structs_free.h"
 
@@ -63,6 +66,9 @@ void race___51204h(void){
 					d += (0x200 - 16);
 				} while (--j);
 
+#if defined(DR_SWITCH)
+				if(SwitchLocal_advanceEffects())
+#endif
 				if((__GET_FRAME_COUNTER()-s_35e[D(___243c60h)].__1de) > 3){
 					
 					D(___196efch) = !D(___196efch);
@@ -72,5 +78,8 @@ void race___51204h(void){
 		}
 	}
 
+#if defined(DR_SWITCH)
+	if(SwitchLocal_advanceEffects())
+#endif
 	D(___1de580h+0x58+0x94*D(___243c60h)) = 0;
 }

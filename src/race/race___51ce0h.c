@@ -1,4 +1,7 @@
 #include "drally.h"
+#if defined(DR_SWITCH)
+#include "switch_input.h"
+#endif
 
 	extern __BYTE__ ___1df520h[];
 	extern int TRX_VIEWPORT_TL_X;
@@ -56,12 +59,18 @@ void race___51ce0h(void){
 
 				ebx = D(___1df520h+0x10*D(esp)+0xc)+0x5;
 				
+#if defined(DR_SWITCH)
+				if(SwitchLocal_advanceEffects())
+#endif
 				if(__GET_FRAME_COUNTER() >= ebx){
 				
 					D(___1df520h+0x10*D(esp)+8)++;
 					D(___1df520h+0x10*D(esp)+0xc) = __GET_FRAME_COUNTER();
 				}
 
+#if defined(DR_SWITCH)
+				if(SwitchLocal_advanceEffects())
+#endif
 				if((int)D(___1df520h+0x10*D(esp)+8) > 5){
 
 					ebx = getCounter(6)-1;

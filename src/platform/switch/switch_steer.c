@@ -9,8 +9,7 @@
 static struct {
     float   stick;
     float   stick_y;
-    float   acc;                /* the pulse accumulator */
-    int     last_dir;
+    SwitchSteerState pulse;
 } S = {0};
 
 static float clampf(float v, float lo, float hi){ return (v < lo) ? lo : ((v > hi) ? hi : v); }
@@ -27,31 +26,30 @@ void SwitchSteer_setStickY(float y){
 
 void SwitchSteer_reset(void){
 
-    S.acc = 0.0f;
-    S.last_dir = 0;
+    S.pulse = (SwitchSteerState){0};
 }
 
 /* Stick: the dead zone is cut off and the rest stretched to the full range, with a slightly
    gentler start so small movements are small. */
-static float stick_value(void){
+static float stick_value(float x){
 
     const float dz = SwitchConfig.stick_deadzone/100.0f;
-    float a = fabsf(S.stick), v;
+    float a = fabsf(x), v;
 
     if(!SwitchConfig.analog_steering || SwitchConfig.stick_mode || (a <= dz)) return 0.0f;
 
     v = (a-dz)/(1.0f-dz);
     v = v*(0.35f+0.65f*v);          /* between linear and squared */
-    return (S.stick < 0.0f) ? -v : v;
+    return (x < 0.0f) ? -v : v;
 }
 
 float SwitchSteer_value(void){
 
-    return clampf(stick_value(), -1.0f, 1.0f);
+    return clampf(stick_value(S.stick), -1.0f, 1.0f);
 }
 
 /* v from -1 (left) to 1 (right): the flags for this frame, on as often as v says */
-static void pulse(float v, int * left, int * right){
+static void pulse(SwitchSteerState *state, float v, int * left, int * right){
 
     const float a = fabsf(v);
     const int dir = (v < 0.0f) ? -1 : 1;
@@ -60,22 +58,21 @@ static void pulse(float v, int * left, int * right){
 
     if(a < MIN_STEER){
 
-        S.acc = 0.0f;
-        S.last_dir = 0;
+        *state = (SwitchSteerState){0};
         return;
     }
 
-    if(dir != S.last_dir){
+    if(dir != state->last_dir){
 
         /* a new direction starts with a pulse, so the car answers at once */
-        S.acc = 1.0f;
-        S.last_dir = dir;
+        state->acc = 1.0f;
+        state->last_dir = dir;
     }
 
-    S.acc += a;
-    if(S.acc >= 1.0f){
+    state->acc += a;
+    if(state->acc >= 1.0f){
 
-        S.acc -= 1.0f;
+        state->acc -= 1.0f;
         if(dir < 0) *left = 1;
         else *right = 1;
     }
@@ -83,7 +80,7 @@ static void pulse(float v, int * left, int * right){
 
 void SwitchSteer_tick(int * left, int * right){
 
-    pulse(SwitchSteer_value(), left, right);
+    pulse(&S.pulse, SwitchSteer_value(), left, right);
 }
 
 float SwitchSteer_directionFor(float x, float y){
@@ -95,10 +92,11 @@ float SwitchSteer_directionFor(float x, float y){
 #define HEADING_DEADBAND 3.0f       /* degrees of error that are left alone */
 #define HEADING_FULL 25.0f          /* the error at which the steering is on every frame */
 
-int SwitchSteer_tickHeading(float car_direction, int * left, int * right){
+static int tick_heading(SwitchSteerState *state, float x, float y, float car_direction,
+                        int *left, int *right){
 
     float dz = SwitchConfig.stick_deadzone/100.0f;
-    const float mag = sqrtf(S.stick*S.stick+S.stick_y*S.stick_y);
+    const float mag = sqrtf(x*x+y*y);
     float err, a;
 
     if(dz < 0.25f) dz = 0.25f;      /* the direction of a stick near the centre is not reliable */
@@ -106,12 +104,11 @@ int SwitchSteer_tickHeading(float car_direction, int * left, int * right){
     if(!SwitchConfig.analog_steering || !SwitchConfig.stick_mode || (mag <= dz)){
 
         *left = *right = 0;
-        S.acc = 0.0f;
-        S.last_dir = 0;
+        if(SwitchConfig.stick_mode) *state = (SwitchSteerState){0};
         return 0;
     }
 
-    err = SwitchSteer_directionFor(S.stick, S.stick_y)-car_direction;
+    err = SwitchSteer_directionFor(x, y)-car_direction;
     while(err > 180.0f) err -= 360.0f;
     while(err <= -180.0f) err += 360.0f;
 
@@ -119,8 +116,7 @@ int SwitchSteer_tickHeading(float car_direction, int * left, int * right){
     if(a < HEADING_DEADBAND){
 
         *left = *right = 0;
-        S.acc = 0.0f;
-        S.last_dir = 0;
+        *state = (SwitchSteerState){0};
         return 1;
     }
 
@@ -129,6 +125,18 @@ int SwitchSteer_tickHeading(float car_direction, int * left, int * right){
     if(a < 0.3f) a = 0.3f;
 
     /* a larger Direction is a turn to the left */
-    pulse((err > 0.0f) ? -a : a, left, right);
+    pulse(state, (err > 0.0f) ? -a : a, left, right);
     return 1;
+}
+
+int SwitchSteer_tickHeading(float car_direction, int *left, int *right){
+    return tick_heading(&S.pulse, S.stick, S.stick_y, car_direction, left, right);
+}
+
+void SwitchSteer_tickStick(SwitchSteerState *state, float x, float y, float direction,
+                          int *left, int *right){
+    x = clampf(x, -1.0f, 1.0f);
+    y = clampf(y, -1.0f, 1.0f);
+    if(!tick_heading(state, x, y, direction, left, right))
+        pulse(state, stick_value(x), left, right);
 }

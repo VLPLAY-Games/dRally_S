@@ -1,4 +1,7 @@
 #include "drally.h"
+#if defined(DR_SWITCH)
+#include "switch_input.h"
+#endif
 #include "drmath.h"
 #include "drally_structs_free.h"
 
@@ -129,6 +132,9 @@ static void helper02(int n){
 
 	helper01(s_35e[n].__4+88, s_35e[n].__8-8, RACE_BURN1A_BPK+0x100*s_35e[n].__1da, 0x10);
 
+#if defined(DR_SWITCH)
+	if(SwitchLocal_advanceEffects())
+#endif
 	if((s_35e[n].__1de+0x3) <= __GET_FRAME_COUNTER()){
 
 		s_35e[n].__1da++;

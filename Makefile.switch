@@ -28,6 +28,7 @@ CFLAGS   := -O2 -g -ffunction-sections -fno-strict-aliasing -fwrapv -w $(ARCH) \
 # DR_MULTIPLAYER / IPXNET: the network race, IPX tunnelled over UDP to an ipxnet server (SDL2_net).
 DEFINES  := -DDR_LETTERBOX -DDR_SWITCH -DDR_MULTIPLAYER -DIPXNET
 LDFLAGS  := -specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(BUILD)/$(APP_NAME).map
+LDFLAGS  += -Wl,--wrap=hidLaShowControllerSupportForSystem
 LIBS     := -lSDL2_net $(shell $(PKGCONFIG) --libs sdl2) -lm
 
 include objs.mk

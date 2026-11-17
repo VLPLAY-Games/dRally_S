@@ -4,6 +4,14 @@
 #define STUB_SDL_H
 
 typedef unsigned int Uint32;
+typedef int SDL_JoystickID;
+typedef struct SDL_Joystick SDL_Joystick;
+SDL_Joystick *SDL_JoystickFromInstanceID(SDL_JoystickID id);
+int SDL_JoystickGetAttached(SDL_Joystick *pad);
+short SDL_JoystickGetAxis(SDL_Joystick *pad, int axis);
+int SDL_JoystickNumHats(SDL_Joystick *pad);
+unsigned char SDL_JoystickGetHat(SDL_Joystick *pad, int hat);
+unsigned char SDL_JoystickGetButton(SDL_Joystick *pad, int button);
 
 typedef enum {
     SDL_SCANCODE_UNKNOWN = 0,
@@ -18,6 +26,7 @@ typedef enum {
     SDL_NUM_SCANCODES = 512
 } SDL_Scancode;
 
+#define SDL_HAT_CENTERED 0
 #define SDL_HAT_UP    0x01
 #define SDL_HAT_RIGHT 0x02
 #define SDL_HAT_DOWN  0x04

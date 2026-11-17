@@ -1,5 +1,8 @@
 #include "drally.h"
 #include "drmath.h"
+#if defined(DR_SWITCH)
+#include "switch_input.h"
+#endif
 #include "drally_structs_free.h"
 
 	extern int ___243cbch;
@@ -32,6 +35,14 @@ void race___4ee9ch(void){
 
 	s_35e = (struct_35e_t *)___1e6ed0h;
 
+#if defined(DR_SWITCH)
+	if(SwitchLocal_count()){
+		X___243c8ch = Y___243c90h = 0;
+		TRX_VIEWPORT_TL_X = limit_i(0, (int)s_35e[MY_CAR_IDX].XLocation - CURRENT_VIEWPORT_CENTER_X, TRX_WIDTH - CURRENT_VIEWPORT_W);
+		TRX_VIEWPORT_TL_Y = limit_i(0, (int)s_35e[MY_CAR_IDX].YLocation - CURRENT_VIEWPORT_CENTER_Y, TRX_HEIGHT - CURRENT_VIEWPORT_H);
+		return;
+	}
+#endif
 	X_IncOld = X_Inc;
 	Y_IncOld = Y_Inc;
 	X_Inc = (int)(dRMath_sin(L_PI*((double)s_35e[MY_CAR_IDX].Direction+180.0)/180.0)*48.0*(double)s_35e[MY_CAR_IDX].__b0/3.0);
